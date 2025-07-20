@@ -108,12 +108,11 @@ class BackupManager:
                 
         except Exception as e:
             # Cleanup on error
-            if 'backup_path' in locals():
-                try:
-                    if os.path.exists(backup_path):
-                        os.remove(backup_path)
-                except:
-                    pass
+            try:
+                if 'backup_path' in locals() and backup_path and os.path.exists(backup_path):
+                    os.remove(backup_path)
+            except:
+                pass
             raise Exception(f"Backup failed: {str(e)}")
     
     def _get_files_to_backup(self, source_folder, include_subdirs):
