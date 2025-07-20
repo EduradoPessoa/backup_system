@@ -7,6 +7,7 @@ This is a desktop backup application built with Python and tkinter that provides
 ## User Preferences
 
 Preferred communication style: Simple, everyday language.
+User language: Portuguese (user requested in Portuguese).
 
 ## System Architecture
 

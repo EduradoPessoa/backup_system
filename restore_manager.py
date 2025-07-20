@@ -202,8 +202,10 @@ class RestoreManager:
                     ensure_directory_exists(dest_dir)
                     
                     # Extract file
-                    with tarf.extractfile(member) as source, open(dest_file_path, 'wb') as target:
-                        shutil.copyfileobj(source, target)
+                    extracted_file = tarf.extractfile(member)
+                    if extracted_file:
+                        with extracted_file as source, open(dest_file_path, 'wb') as target:
+                            shutil.copyfileobj(source, target)
                     
                     # Preserve file permissions
                     try:
@@ -261,8 +263,10 @@ class RestoreManager:
             elif backup_path.endswith('.tar.gz'):
                 with tarfile.open(backup_path, 'r:gz') as tarf:
                     member = tarf.getmember(file_name)
-                    with tarf.extractfile(member) as source, open(destination_path, 'wb') as target:
-                        shutil.copyfileobj(source, target)
+                    extracted_file = tarf.extractfile(member)
+                    if extracted_file:
+                        with extracted_file as source, open(destination_path, 'wb') as target:
+                            shutil.copyfileobj(source, target)
             
             else:
                 raise Exception(f"Unsupported backup format: {backup_path}")

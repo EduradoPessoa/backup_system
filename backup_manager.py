@@ -108,9 +108,10 @@ class BackupManager:
                 
         except Exception as e:
             # Cleanup on error
-            if 'backup_path' in locals() and os.path.exists(backup_path):
+            if 'backup_path' in locals():
                 try:
-                    os.remove(backup_path)
+                    if os.path.exists(backup_path):
+                        os.remove(backup_path)
                 except:
                     pass
             raise Exception(f"Backup failed: {str(e)}")
