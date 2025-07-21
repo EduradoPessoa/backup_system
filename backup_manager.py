@@ -11,6 +11,12 @@ from pathlib import Path
 from datetime import datetime
 import threading
 import shutil
+try:
+    import py7zr
+    SEVENZ_AVAILABLE = True
+except ImportError:
+    SEVENZ_AVAILABLE = False
+    print("Warning: py7zr not available. 7z compression disabled.")
 
 from catalog_manager import CatalogManager
 from utils import get_file_size, calculate_directory_size, format_size
@@ -31,7 +37,7 @@ class BackupManager:
         Args:
             source_folders: List of folder paths to backup
             destination_path: Destination directory for backup
-            compression_type: 'zip' or 'tar.gz'
+            compression_type: 'zip', 'tar.gz', or '7z'
             include_subdirs: Whether to include subdirectories
             progress_callback: Function to call with progress updates
             backup_title: Custom title for the backup
@@ -56,6 +62,8 @@ class BackupManager:
             
             if compression_type == "zip":
                 backup_filename = f"{backup_name}.zip"
+            elif compression_type == "7z":
+                backup_filename = f"{backup_name}.7z"
             else:
                 backup_filename = f"{backup_name}.tar.gz"
             
@@ -124,6 +132,9 @@ class BackupManager:
             # Create backup
             if compression_type == "zip":
                 success = self._create_zip_backup(backup_path, file_list, source_folders, 
+                                                total_size, progress_callback)
+            elif compression_type == "7z":
+                success = self._create_7z_backup(backup_path, file_list, source_folders, 
                                                 total_size, progress_callback)
             else:
                 success = self._create_tar_backup(backup_path, file_list, source_folders, 
@@ -268,6 +279,46 @@ class BackupManager:
             
         except Exception as e:
             raise Exception(f"TAR creation failed: {str(e)}")
+    
+    def _create_7z_backup(self, backup_path, file_list, source_folders, total_size, progress_callback):
+        """Create 7Z backup with maximum compression."""
+        if not SEVENZ_AVAILABLE:
+            raise Exception("7z compression not available. Please install py7zr.")
+        
+        try:
+            processed_size = 0
+            
+            with py7zr.SevenZipFile(backup_path, 'w') as szf:
+                for file_path in file_list:
+                    if self.cancel_flag.is_set():
+                        return False
+                    
+                    try:
+                        # Calculate relative path for archive
+                        arcname = self._get_archive_name(file_path, source_folders)
+                        
+                        # Add file to archive
+                        szf.write(file_path, arcname)
+                        
+                        # Update progress
+                        file_size = get_file_size(file_path)
+                        processed_size += file_size
+                        
+                        if progress_callback and total_size > 0:
+                            progress = (processed_size / total_size) * 100
+                            progress_callback(progress, 100, f"Backing up: {os.path.basename(file_path)}")
+                    
+                    except (OSError, IOError) as e:
+                        # Skip files that can't be read
+                        if progress_callback:
+                            progress_callback(processed_size / total_size * 100, 100, 
+                                            f"Skipped: {os.path.basename(file_path)} ({str(e)})")
+                        continue
+            
+            return True
+            
+        except Exception as e:
+            raise Exception(f"7Z creation failed: {str(e)}")
     
     def _get_archive_name(self, file_path, source_folders):
         """Generate archive name for file maintaining folder structure."""

@@ -209,6 +209,7 @@ class BackupGUI:
         ttk.Label(options_frame, text="Compactação:", font=('Segoe UI', 11, 'bold')).pack(side=tk.LEFT)
         ttk.Radiobutton(options_frame, text="ZIP", variable=self.compression_var, value="zip").pack(side=tk.LEFT, padx=(10, 15))
         ttk.Radiobutton(options_frame, text="TAR.GZ", variable=self.compression_var, value="tar.gz").pack(side=tk.LEFT, padx=(0, 15))
+        ttk.Radiobutton(options_frame, text="7Z", variable=self.compression_var, value="7z").pack(side=tk.LEFT, padx=(0, 15))
         
         self.include_subdirs_var = tk.BooleanVar(value=True)
         ttk.Checkbutton(options_frame, text="Incluir subpastas", variable=self.include_subdirs_var).pack(side=tk.LEFT, padx=(15, 0))

@@ -241,7 +241,7 @@ Para agendamento no Windows:
     backup_parser.add_argument('--title', required=True, help='Título do backup (ex: Documentos_2025)')
     backup_parser.add_argument('--source', nargs='+', required=True, help='Pasta(s) de origem para backup')
     backup_parser.add_argument('--destination', required=True, help='Pasta de destino')
-    backup_parser.add_argument('--compression', choices=['zip', 'tar.gz'], default='zip', help='Tipo de compactação (padrão: zip)')
+    backup_parser.add_argument('--compression', choices=['zip', 'tar.gz', '7z'], default='zip', help='Tipo de compactação (padrão: zip)')
     backup_parser.add_argument('--no-subdirs', action='store_true', help='Não incluir subpastas')
     backup_parser.add_argument('--incremental', '-i', action='store_true', help='Backup incremental (apenas arquivos novos ou modificados)')
     backup_parser.add_argument('--verbose', '-v', action='store_true', help='Mostrar progresso detalhado')
