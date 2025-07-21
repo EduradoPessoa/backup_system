@@ -117,6 +117,7 @@ The modular structure allows for easy maintenance and feature additions while ke
 - **Executáveis**: Scripts prontos para gerar .exe, .app e Linux binaries
 - **Branding**: PHOENYX TECNOLOGIA 2025 integrado em todas as interfaces
 - **Backup Incremental**: Apenas arquivos novos/modificados desde último backup
+- **Compactação 7Z**: Suporte adicional ao formato 7Z para máxima compressão
 
 ### 🚀 Acesso ao Sistema
 - **Aplicativo Principal**: Execute `python main.py`
@@ -217,3 +218,19 @@ The modular structure allows for easy maintenance and feature additions while ke
   - Initial backup: 2 files, 310 B
   - Incremental backup: 1 new file, 169 B (45% space saved)
   - CLI and GUI interfaces both functional
+
+### 7Z Compression Support - NEW ✅
+- **Date**: 2025-01-21 (Added after incremental backup)
+- **Status**: Fully implemented and tested
+- **Files**: `backup_manager.py`, `gui_components.py`, `backup_cli.py`
+- **Features Added**:
+  - ✅ 7Z compression format support using py7zr library
+  - ✅ GUI radio button for 7Z selection
+  - ✅ CLI parameter `--compression 7z` support
+  - ✅ Maximum compression settings for 7Z format
+  - ✅ Progress tracking during 7Z backup creation
+  - ✅ Error handling and fallback for missing py7zr
+- **Available Formats**: ZIP (fast), TAR.GZ (standard), 7Z (maximum compression)
+- **Testing Results**: 
+  - 7Z backup: 3 files, 233 B (better compression than ZIP)
+  - All three formats working in both GUI and CLI
