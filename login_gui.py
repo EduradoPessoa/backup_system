@@ -241,12 +241,31 @@ class LoginWindow:
     
     def do_register(self):
         """Executar registro."""
-        # Capturar valores com tratamento robusto para Windows
+        # Força atualização dos widgets antes de capturar valores
+        self.root.update_idletasks()
+        self.root.update()
+        
+        # Capturar valores com múltiplas tentativas
         try:
+            # Primeira tentativa normal
             name_raw = self.register_name_var.get()
             email_raw = self.register_email_var.get()
             
-            # Tratamento defensivo para diferentes tipos
+            # Se vazio, tentar capturar diretamente do widget
+            if not name_raw or name_raw.strip() == "":
+                # Buscar o widget diretamente
+                for widget in self.root.winfo_children():
+                    if hasattr(widget, 'winfo_children'):
+                        for child in widget.winfo_children():
+                            if hasattr(child, 'winfo_children'):
+                                for grandchild in child.winfo_children():
+                                    if isinstance(grandchild, ttk.Entry):
+                                        potential_name = grandchild.get()
+                                        if potential_name and len(potential_name.strip()) > 1:
+                                            name_raw = potential_name
+                                            break
+            
+            # Tratamento defensivo
             if name_raw is None:
                 name_raw = ""
             if email_raw is None:
@@ -255,44 +274,53 @@ class LoginWindow:
             name = str(name_raw).strip()
             email = str(email_raw).strip()
             
-            # Log detalhado para diagnosticar problema no Windows
-            print(f"REGISTRO - Nome: '{name}' (len: {len(name)}, type: {type(name)})")
-            print(f"REGISTRO - Email: '{email}' (len: {len(email)}, type: {type(email)})")
+            # Valores capturados com sucesso
             
         except Exception as e:
-            print(f"ERRO ao capturar dados: {e}")
             messagebox.showerror("Erro", "Erro interno ao processar dados. Tente novamente.")
             return
         
-        # Validação mais robusta
+        # Validação mais robusta com prompt de re-entrada
         if not name or len(name.strip()) == 0:
-            print("ERRO: Nome está vazio após validação")
-            messagebox.showerror("Erro", f"Por favor, digite seu nome.\nValor capturado: '{name}'")
-            return
+            
+            # Solicitar entrada manual como fallback
+            import tkinter.simpledialog as simpledialog
+            name = simpledialog.askstring("Nome Obrigatório", 
+                                        "O sistema não conseguiu capturar seu nome.\n"
+                                        "Por favor, digite seu nome completo:")
+            
+            if not name or len(name.strip()) < 2:
+                messagebox.showerror("Erro", "Nome é obrigatório para criar conta.")
+                return
+            
+            name = name.strip()
         
         if len(name) < 2:
-            print("ERRO: Nome muito curto")
-            messagebox.showerror("Erro", f"Nome deve ter pelo menos 2 caracteres.\nValor atual: '{name}' (len: {len(name)})")
+            messagebox.showerror("Erro", "Nome deve ter pelo menos 2 caracteres.")
             return
         
         if not email or len(email.strip()) == 0:
-            print("ERRO: Email está vazio")
-            messagebox.showerror("Erro", f"Por favor, digite seu email.\nValor capturado: '{email}'")
-            return
+            
+            # Solicitar entrada manual como fallback
+            import tkinter.simpledialog as simpledialog
+            email = simpledialog.askstring("Email Obrigatório", 
+                                         "O sistema não conseguiu capturar seu email.\n"
+                                         "Por favor, digite seu email:")
+            
+            if not email or len(email.strip()) == 0:
+                messagebox.showerror("Erro", "Email é obrigatório para criar conta.")
+                return
+            
+            email = email.strip()
         
         if not self.validate_email(email):
-            print("ERRO: Email inválido")
-            messagebox.showerror("Erro", f"Por favor, digite um email válido.\nValor: '{email}'")
+            messagebox.showerror("Erro", "Por favor, digite um email válido.")
             return
-        
-        print(f"TENTANDO REGISTRAR: Nome='{name}', Email='{email}'")
         
         try:
             user_id = user_manager.register_user(name, email)
-            print(f"RESULTADO REGISTRO: {user_id}")
             
             if user_id:
-                print("REGISTRO OK - Fazendo login automático")
                 # Fazer login automático após registro
                 user = user_manager.login_user(email)
                 if user:
@@ -300,16 +328,11 @@ class LoginWindow:
                     messagebox.showinfo("Sucesso", f"Conta criada com sucesso!\nBem-vindo, {name}!")
                     self.close_and_continue()
                 else:
-                    print("ERRO: Falha no login automático")
                     messagebox.showerror("Erro", "Conta criada, mas falha no login. Tente fazer login manualmente.")
             else:
-                print("ERRO: Falha no registro")
                 messagebox.showerror("Erro", "Este email já está em uso. Tente fazer login na aba 'Entrar'.")
                 
         except Exception as e:
-            print(f"EXCEÇÃO no registro: {e}")
-            import traceback
-            traceback.print_exc()
             messagebox.showerror("Erro", f"Erro interno: {str(e)}")
     
     def logout_and_show_login(self):

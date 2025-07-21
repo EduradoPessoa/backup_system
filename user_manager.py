@@ -21,12 +21,7 @@ class UserManager:
         self.api_url = "https://backup-manager-api.phoenyx.com.br"  # URL do seu servidor
         self.local_mode = True  # Modo offline por padrão
         
-        # Debug logs para Windows
-        print(f"USER MANAGER INIT - Home: {Path.home()}")
-        print(f"USER MANAGER INIT - DB Path: {self.db_path}")
-        print(f"USER MANAGER INIT - DB Exists: {self.db_path.exists()}")
-        print(f"USER MANAGER INIT - Parent Dir: {self.db_path.parent}")
-        print(f"USER MANAGER INIT - Parent Exists: {self.db_path.parent.exists()}")
+        # Inicialização silenciosa
         
         self.init_database()
         
@@ -76,23 +71,16 @@ class UserManager:
     def register_user(self, name, email):
         """Registrar novo usuário."""
         try:
-            print(f"USER MANAGER REGISTER - Nome: '{name}', Email: '{email}'")
             user_id = str(uuid.uuid4())
-            print(f"USER MANAGER REGISTER - UUID gerado: {user_id}")
             
             # Tentar registrar online primeiro
             if self.try_online_register(user_id, name, email):
-                print("USER MANAGER REGISTER - Registro online OK, salvando local")
                 return self.save_user_local(user_id, name, email)
             
             # Fallback para registro local
-            print("USER MANAGER REGISTER - Registro online falhou, usando local")
             return self.save_user_local(user_id, name, email)
             
         except Exception as e:
-            print(f"USER MANAGER REGISTER - ERRO: {e}")
-            import traceback
-            traceback.print_exc()
             return None
     
     def try_online_register(self, user_id, name, email):
