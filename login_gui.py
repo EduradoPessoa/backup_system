@@ -166,6 +166,7 @@ class LoginWindow:
         self.register_name_var = tk.StringVar()
         name_entry = ttk.Entry(parent, textvariable=self.register_name_var, width=40, font=('Segoe UI', 11))
         name_entry.pack(fill=tk.X, pady=(5, 10))
+        name_entry.focus()  # Dar foco inicial ao campo nome
         
         # Email
         ttk.Label(parent, text="Email:").pack(anchor='w')
@@ -177,7 +178,8 @@ class LoginWindow:
         register_btn = ttk.Button(parent, text="Criar Conta Gratuita", command=self.do_register)
         register_btn.pack(pady=(0, 15))
         
-        # Bind Enter key
+        # Bind Enter key para ambos os campos
+        name_entry.bind('<Return>', lambda e: self.do_register())
         email_entry.bind('<Return>', lambda e: self.do_register())
         
         # Termos de uso
@@ -219,11 +221,20 @@ class LoginWindow:
         name = self.register_name_var.get().strip()
         email = self.register_email_var.get().strip()
         
+        # Debug - imprimir valores capturados
+        print(f"DEBUG - Nome capturado: '{name}' (len: {len(name)})")
+        print(f"DEBUG - Email capturado: '{email}' (len: {len(email)})")
+        print(f"DEBUG - Nome original: '{self.register_name_var.get()}'")
+        print(f"DEBUG - Validação nome vazio: {not name}")
+        print(f"DEBUG - Validação len < 2: {len(name) < 2}")
+        
         if not name:
+            print("DEBUG - Erro: nome está vazio")
             messagebox.showerror("Erro", "Por favor, digite seu nome.")
             return
         
         if len(name) < 2:
+            print("DEBUG - Erro: nome muito curto")
             messagebox.showerror("Erro", "Nome deve ter pelo menos 2 caracteres.")
             return
         
@@ -235,8 +246,12 @@ class LoginWindow:
             messagebox.showerror("Erro", "Por favor, digite um email válido.")
             return
         
+        print(f"DEBUG - Tentando registrar usuário: {name} / {email}")
         user_id = user_manager.register_user(name, email)
+        print(f"DEBUG - Resultado do registro: {user_id}")
+        
         if user_id:
+            print("DEBUG - Registro bem-sucedido, fazendo login automático")
             # Fazer login automático após registro
             user = user_manager.login_user(email)
             if user:
@@ -244,6 +259,7 @@ class LoginWindow:
                 messagebox.showinfo("Sucesso", f"Conta criada com sucesso!\nBem-vindo, {name}!")
                 self.close_and_continue()
         else:
+            print("DEBUG - Falha no registro - email já existe")
             messagebox.showerror("Erro", "Este email já está em uso. Tente fazer login.")
     
     def logout_and_show_login(self):
