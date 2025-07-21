@@ -115,7 +115,7 @@ done
 
 Para problemas técnicos:
 - 📧 Email: suporte@phoenyx.com.br
-- 📱 WhatsApp: (11) 99999-9999
+- 📱 WhatsApp: (19) 98221-0377    
 - 🌐 Site: www.phoenyx.com.br
 
 ---
