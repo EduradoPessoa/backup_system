@@ -39,6 +39,11 @@ def index():
     """Main page with backup interface."""
     return render_template('index.html')
 
+@app.route('/help')
+def help_page():
+    """Help page with user manual."""
+    return render_template('help.html')
+
 @app.route('/api/backup', methods=['POST'])
 def create_backup():
     """Create a new backup."""

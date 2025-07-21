@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ajuda - PHOENYX Backup Manager</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .help-section {
+            margin-bottom: 3rem;
+            padding: 2rem;
+            background: #f8f9fa;
+            border-radius: 10px;
+            border-left: 4px solid #007bff;
+        }
+        .step-number {
+            background: #007bff;
+            color: white;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 10px;
+            font-weight: bold;
+        }
+        .feature-card {
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            background: white;
+        }
+        .icon-large {
+            font-size: 2rem;
+            color: #007bff;
+            margin-bottom: 1rem;
+        }
+        .brand-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 3rem 0;
+            margin-bottom: 3rem;
+        }
+        .kbd-custom {
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 3px;
+            padding: 2px 6px;
+            font-family: monospace;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header com branding -->
+    <div class="brand-header text-center">
+        <div class="container">
+            <h1><i class="fas fa-shield-alt"></i> PHOENYX Backup Manager</h1>
+            <p class="lead">Manual Completo de Uso</p>
+            <p><i class="fas fa-calendar"></i> PHOENYX TECNOLOGIA © 2025</p>
+        </div>
+    </div>
+
+    <div class="container">
+        <!-- Navegação rápida -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-body">
+                        <h5><i class="fas fa-list"></i> Navegação Rápida</h5>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <ul class="list-unstyled">
+                                    <li><a href="#inicio-rapido"><i class="fas fa-rocket"></i> Início Rápido</a></li>
+                                    <li><a href="#criar-backup"><i class="fas fa-plus-circle"></i> Criar Backup</a></li>
+                                    <li><a href="#restaurar"><i class="fas fa-undo"></i> Restaurar Backup</a></li>
+                                </ul>
+                            </div>
+                            <div class="col-md-6">
+                                <ul class="list-unstyled">
+                                    <li><a href="#recursos"><i class="fas fa-cog"></i> Recursos Avançados</a></li>
+                                    <li><a href="#formatos"><i class="fas fa-file-archive"></i> Formatos de Compressão</a></li>
+                                    <li><a href="#troubleshooting"><i class="fas fa-wrench"></i> Solução de Problemas</a></li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Início Rápido -->
+        <div id="inicio-rapido" class="help-section">
+            <h2><i class="fas fa-rocket"></i> Início Rápido</h2>
+            <p class="lead">Faça seu primeiro backup em 3 passos simples:</p>
+            
+            <div class="row">
+                <div class="col-md-4">
+                    <div class="feature-card text-center">
+                        <div class="step-number">1</div>
+                        <h5>Selecione Pastas</h5>
+                        <p>Clique em "Adicionar Pasta" e escolha as pastas que deseja fazer backup</p>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="feature-card text-center">
+                        <div class="step-number">2</div>
+                        <h5>Configure Destino</h5>
+                        <p>Escolha onde salvar o backup e dê um título descritivo</p>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="feature-card text-center">
+                        <div class="step-number">3</div>
+                        <h5>Iniciar Backup</h5>
+                        <p>Clique em "Iniciar Backup" e acompanhe o progresso</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Criar Backup -->
+        <div id="criar-backup" class="help-section">
+            <h2><i class="fas fa-plus-circle"></i> Como Criar um Backup</h2>
+            
+            <h4><i class="fas fa-folder-plus"></i> 1. Seleção de Pastas</h4>
+            <ul>
+                <li><strong>Adicionar Pasta:</strong> Clique no botão e navegue até a pasta desejada</li>
+                <li><strong>Múltiplas Pastas:</strong> Você pode adicionar quantas pastas quiser</li>
+                <li><strong>Remover Pasta:</strong> Clique no "X" ao lado da pasta para removê-la</li>
+            </ul>
+
+            <h4><i class="fas fa-map-marker-alt"></i> 2. Destino do Backup</h4>
+            <ul>
+                <li>Escolha uma pasta diferente das que está fazendo backup</li>
+                <li>Certifique-se de ter espaço suficiente no destino</li>
+                <li>Recomendamos usar um disco externo ou pasta na nuvem</li>
+            </ul>
+
+            <h4><i class="fas fa-tag"></i> 3. Título do Backup</h4>
+            <ul>
+                <li>Dê um nome descritivo como "Documentos_Janeiro_2025"</li>
+                <li>O sistema adiciona data e hora automaticamente</li>
+                <li>Evite caracteres especiais como / \ : * ? " < > |</li>
+            </ul>
+
+            <h4><i class="fas fa-compress-arrows-alt"></i> 4. Formato de Compressão</h4>
+            <div class="row">
+                <div class="col-md-4">
+                    <div class="feature-card">
+                        <h6><i class="fas fa-file-archive"></i> ZIP</h6>
+                        <p><strong>Rápido</strong><br>Melhor para backups frequentes</p>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="feature-card">
+                        <h6><i class="fas fa-file-archive"></i> TAR.GZ</h6>
+                        <p><strong>Balanceado</strong><br>Boa compressão e velocidade</p>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="feature-card">
+                        <h6><i class="fas fa-file-archive"></i> 7Z</h6>
+                        <p><strong>Máxima Compressão</strong><br>Menor tamanho de arquivo</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recursos Avançados -->
+        <div id="recursos" class="help-section">
+            <h2><i class="fas fa-cog"></i> Recursos Avançados</h2>
+            
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="feature-card">
+                        <i class="fas fa-plus icon-large"></i>
+                        <h5>Backup Incremental</h5>
+                        <p>Faz backup apenas de arquivos novos ou modificados desde o último backup, economizando tempo e espaço.</p>
+                        <p><strong>Como usar:</strong> Marque a opção "Backup Incremental" antes de iniciar</p>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="feature-card">
+                        <i class="fas fa-folder-tree icon-large"></i>
+                        <h5>Incluir Subpastas</h5>
+                        <p>Inclui automaticamente todas as subpastas e arquivos dentro das pastas selecionadas.</p>
+                        <p><strong>Padrão:</strong> Sempre habilitado para backup completo</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="feature-card">
+                        <i class="fas fa-chart-line icon-large"></i>
+                        <h5>Progresso em Tempo Real</h5>
+                        <p>Acompanhe o progresso do backup com duas fases:</p>
+                        <ul>
+                            <li><strong>Análise (0-80%):</strong> Calculando tamanho dos arquivos</li>
+                            <li><strong>Backup (80-100%):</strong> Comprimindo e salvando</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="feature-card">
+                        <i class="fas fa-shield-alt icon-large"></i>
+                        <h5>Tratamento de Erros</h5>
+                        <p>Sistema robusto que lida com arquivos bloqueados ou corrompidos:</p>
+                        <ul>
+                            <li>Pula arquivos com problema automaticamente</li>
+                            <li>Gera relatório detalhado de erros</li>
+                            <li>Permite continuar o backup mesmo com problemas</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Restaurar Backup -->
+        <div id="restaurar" class="help-section">
+            <h2><i class="fas fa-undo"></i> Como Restaurar um Backup</h2>
+            
+            <h4><i class="fas fa-search"></i> 1. Localizar Backup</h4>
+            <ul>
+                <li>Use a aba "Catálogo" para ver todos os backups realizados</li>
+                <li>Ou use "Restaurar Backup" para selecionar um arquivo específico</li>
+                <li>Visualize detalhes como data, tamanho e número de arquivos</li>
+            </ul>
+
+            <h4><i class="fas fa-eye"></i> 2. Inspecionar Conteúdo</h4>
+            <ul>
+                <li>Visualize o conteúdo do backup antes de restaurar</li>
+                <li>Navegue pela estrutura de pastas</li>
+                <li>Selecione arquivos específicos se necessário</li>
+            </ul>
+
+            <h4><i class="fas fa-download"></i> 3. Extrair Arquivos</h4>
+            <ul>
+                <li>Escolha a pasta de destino para restauração</li>
+                <li>Confirme que não vai sobrescrever arquivos importantes</li>
+                <li>Acompanhe o progresso da extração</li>
+            </ul>
+        </div>
+
+        <!-- Formatos de Compressão -->
+        <div id="formatos" class="help-section">
+            <h2><i class="fas fa-file-archive"></i> Formatos de Compressão</h2>
+            
+            <div class="table-responsive">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Formato</th>
+                            <th>Velocidade</th>
+                            <th>Compressão</th>
+                            <th>Compatibilidade</th>
+                            <th>Recomendado Para</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>ZIP</strong></td>
+                            <td><i class="fas fa-tachometer-alt text-success"></i> Muito Rápida</td>
+                            <td><i class="fas fa-compress text-warning"></i> Básica</td>
+                            <td><i class="fas fa-check-circle text-success"></i> Universal</td>
+                            <td>Backups frequentes, documentos</td>
+                        </tr>
+                        <tr>
+                            <td><strong>TAR.GZ</strong></td>
+                            <td><i class="fas fa-tachometer-alt text-primary"></i> Média</td>
+                            <td><i class="fas fa-compress text-primary"></i> Boa</td>
+                            <td><i class="fas fa-check text-info"></i> Multiplataforma</td>
+                            <td>Uso geral, projetos</td>
+                        </tr>
+                        <tr>
+                            <td><strong>7Z</strong></td>
+                            <td><i class="fas fa-tachometer-alt text-warning"></i> Mais Lenta</td>
+                            <td><i class="fas fa-compress text-success"></i> Máxima</td>
+                            <td><i class="fas fa-info-circle text-warning"></i> Requer Software</td>
+                            <td>Arquivos grandes, armazenamento</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Atalhos de Teclado -->
+        <div class="help-section">
+            <h2><i class="fas fa-keyboard"></i> Atalhos de Teclado</h2>
+            
+            <div class="row">
+                <div class="col-md-6">
+                    <h5>Interface Principal</h5>
+                    <ul class="list-unstyled">
+                        <li><span class="kbd-custom">Ctrl + B</span> - Iniciar Backup</li>
+                        <li><span class="kbd-custom">Ctrl + O</span> - Adicionar Pasta</li>
+                        <li><span class="kbd-custom">Ctrl + R</span> - Restaurar Backup</li>
+                    </ul>
+                </div>
+                <div class="col-md-6">
+                    <h5>Navegação</h5>
+                    <ul class="list-unstyled">
+                        <li><span class="kbd-custom">F1</span> - Abrir Ajuda</li>
+                        <li><span class="kbd-custom">F5</span> - Atualizar Lista</li>
+                        <li><span class="kbd-custom">Esc</span> - Cancelar Operação</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Solução de Problemas -->
+        <div id="troubleshooting" class="help-section">
+            <h2><i class="fas fa-wrench"></i> Solução de Problemas</h2>
+            
+            <div class="accordion" id="troubleshootingAccordion">
+                <div class="accordion-item">
+                    <h2 class="accordion-header" id="headingOne">
+                        <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne">
+                            <i class="fas fa-exclamation-triangle text-warning me-2"></i>
+                            Backup muito lento
+                        </button>
+                    </h2>
+                    <div id="collapseOne" class="accordion-collapse collapse show" data-bs-parent="#troubleshootingAccordion">
+                        <div class="accordion-body">
+                            <strong>Soluções:</strong>
+                            <ul>
+                                <li>Use formato ZIP para backups mais rápidos</li>
+                                <li>Evite fazer backup durante uso intenso do disco</li>
+                                <li>Feche outros programas pesados</li>
+                                <li>Use backup incremental para backups subsequentes</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="accordion-item">
+                    <h2 class="accordion-header" id="headingTwo">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTwo">
+                            <i class="fas fa-lock text-danger me-2"></i>
+                            Arquivos bloqueados ou em uso
+                        </button>
+                    </h2>
+                    <div id="collapseTwo" class="accordion-collapse collapse" data-bs-parent="#troubleshootingAccordion">
+                        <div class="accordion-body">
+                            <strong>O sistema lida automaticamente:</strong>
+                            <ul>
+                                <li>Arquivos em uso são pulados automaticamente</li>
+                                <li>Backup continua com os arquivos disponíveis</li>
+                                <li>Relatório mostra quais arquivos foram pulados</li>
+                                <li>Feche programas que possam estar usando os arquivos</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="accordion-item">
+                    <h2 class="accordion-header" id="headingThree">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseThree">
+                            <i class="fas fa-hdd text-warning me-2"></i>
+                            Espaço insuficiente
+                        </button>
+                    </h2>
+                    <div id="collapseThree" class="accordion-collapse collapse" data-bs-parent="#troubleshootingAccordion">
+                        <div class="accordion-body">
+                            <strong>Soluções:</strong>
+                            <ul>
+                                <li>Use formato 7Z para máxima compressão</li>
+                                <li>Faça backup de pastas menores separadamente</li>
+                                <li>Limpe arquivos desnecessários antes do backup</li>
+                                <li>Use um disco externo com mais espaço</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Dicas Importantes -->
+        <div class="help-section">
+            <h2><i class="fas fa-lightbulb"></i> Dicas Importantes</h2>
+            
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="alert alert-info">
+                        <h6><i class="fas fa-info-circle"></i> Segurança</h6>
+                        <ul class="mb-0">
+                            <li>Sempre teste a restauração de seus backups</li>
+                            <li>Mantenha backups em locais diferentes</li>
+                            <li>Use a regra 3-2-1: 3 cópias, 2 mídias, 1 externa</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="alert alert-success">
+                        <h6><i class="fas fa-calendar-check"></i> Frequência</h6>
+                        <ul class="mb-0">
+                            <li>Documentos importantes: backup diário</li>
+                            <li>Projetos em andamento: backup semanal</li>
+                            <li>Arquivos pessoais: backup mensal</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Rodapé -->
+        <div class="text-center py-4 mt-5 border-top">
+            <p class="text-muted">
+                <i class="fas fa-shield-alt"></i> PHOENYX Backup Manager - PHOENYX TECNOLOGIA © 2025<br>
+                <small>Sistema de Backup Profissional e Gratuito</small>
+            </p>
+            <a href="/" class="btn btn-primary">
+                <i class="fas fa-arrow-left"></i> Voltar ao Backup
+            </a>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Smooth scrolling para links internos
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+
+        // Highlight da seção atual na navegação
+        window.addEventListener('scroll', () => {
+            const sections = document.querySelectorAll('[id]');
+            const scrollPos = window.scrollY + 100;
+
+            sections.forEach(section => {
+                const top = section.offsetTop;
+                const height = section.offsetHeight;
+                const id = section.getAttribute('id');
+                const navLink = document.querySelector(`a[href="#${id}"]`);
+
+                if (scrollPos >= top && scrollPos < top + height) {
+                    document.querySelectorAll('a[href^="#"]').forEach(link => {
+                        link.classList.remove('fw-bold');
+                    });
+                    if (navLink) {
+                        navLink.classList.add('fw-bold');
+                    }
+                }
+            });
+        });
+    </script>
+</body>
+</html>
