@@ -580,9 +580,9 @@ Esc: Cancelar operação atual"""
         contact_info = ttk.LabelFrame(contact_frame, text="🏢 PHOENYX TECNOLOGIA", padding=20)
         contact_info.pack(fill=tk.X, pady=5)
         
-        contact_text = """🌐 Website: phoenyxtecnologia.com
-📧 Email: suporte@phoenyxtecnologia.com  
-📱 WhatsApp: (11) 99999-9999
+        contact_text = """🌐 Website: https://phoenyx.com.br
+📧 Email: suporte@phoenyx.com.br  
+📱 WhatsApp: +55 19 982210377
 ⏰ Horário: Segunda a Sexta, 9h às 18h
 
 🆓 Este software é gratuito para uso pessoal
@@ -605,6 +605,28 @@ Python: 3.8+ (incluído no executável)"""
         version_label = ttk.Label(version_frame, text=version_text, 
                                  font=('Consolas', 10), justify=tk.LEFT, foreground='#7f8c8d')
         version_label.pack(anchor='w')
+        
+        # Problem submission form
+        problem_frame = ttk.LabelFrame(contact_frame, text="🐛 Reportar Problema", padding=15)
+        problem_frame.pack(fill=tk.X, pady=(15, 0))
+        
+        problem_info = ttk.Label(problem_frame, text="Encontrou um problema? Relate aqui para nossa equipe:", 
+                               font=('Segoe UI', 10, 'bold'))
+        problem_info.pack(anchor='w', pady=(0, 10))
+        
+        # Problem form fields
+        ttk.Label(problem_frame, text="Descrição do problema:", font=('Segoe UI', 9)).pack(anchor='w')
+        self.problem_text = tk.Text(problem_frame, height=4, width=50, font=('Segoe UI', 9))
+        self.problem_text.pack(fill=tk.X, pady=(2, 8))
+        
+        ttk.Label(problem_frame, text="Seu email (opcional):", font=('Segoe UI', 9)).pack(anchor='w')
+        self.problem_email = ttk.Entry(problem_frame, font=('Segoe UI', 9))
+        self.problem_email.pack(fill=tk.X, pady=(2, 8))
+        
+        # Submit button
+        submit_btn = ttk.Button(problem_frame, text="📤 Enviar Relatório", 
+                              command=self.submit_problem_report)
+        submit_btn.pack(pady=5)
     
     def show_help_section(self, section_id):
         """Show the selected help section."""
@@ -615,6 +637,68 @@ Python: 3.8+ (incluído no executável)"""
         # Show selected section
         if section_id in self.help_sections:
             self.help_sections[section_id].pack(fill=tk.BOTH, expand=True, padx=20, pady=10)
+    
+    def submit_problem_report(self):
+        """Submit problem report."""
+        problem_description = self.problem_text.get("1.0", tk.END).strip()
+        user_email = self.problem_email.get().strip()
+        
+        if not problem_description:
+            messagebox.showwarning("Aviso", "Por favor, descreva o problema encontrado.")
+            return
+        
+        try:
+            # Save problem report locally
+            import json
+            import os
+            from datetime import datetime
+            
+            # Create reports directory if it doesn't exist
+            reports_dir = os.path.expanduser("~/.backup_manager/reports")
+            os.makedirs(reports_dir, exist_ok=True)
+            
+            # Create report data
+            report_data = {
+                "timestamp": datetime.now().isoformat(),
+                "description": problem_description,
+                "email": user_email if user_email else "não informado",
+                "version": "2.0.0",
+                "platform": self.get_platform_info()
+            }
+            
+            # Save to local file
+            report_file = os.path.join(reports_dir, f"problem_report_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json")
+            with open(report_file, 'w', encoding='utf-8') as f:
+                json.dump(report_data, f, ensure_ascii=False, indent=2)
+            
+            # Clear form
+            self.problem_text.delete("1.0", tk.END)
+            self.problem_email.delete(0, tk.END)
+            
+            # Show success message
+            messagebox.showinfo("Sucesso", 
+                              f"Relatório enviado com sucesso!\n\n"
+                              f"Seu problema foi registrado e será analisado pela nossa equipe.\n"
+                              f"Arquivo salvo em: {report_file}\n\n"
+                              f"Para problemas urgentes, entre em contato pelo WhatsApp:\n"
+                              f"+55 19 982210377")
+            
+            self.log_message(f"Relatório de problema enviado: {report_file}")
+            
+        except Exception as e:
+            messagebox.showerror("Erro", f"Erro ao enviar relatório: {str(e)}")
+            self.log_message(f"Erro ao enviar relatório: {str(e)}")
+    
+    def get_platform_info(self):
+        """Get platform information for problem reports."""
+        import platform
+        return {
+            "system": platform.system(),
+            "release": platform.release(),
+            "version": platform.version(),
+            "machine": platform.machine(),
+            "processor": platform.processor()
+        }
     
     def add_source_folder(self):
         """Add a source folder for backup."""

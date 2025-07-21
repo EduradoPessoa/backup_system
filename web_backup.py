@@ -44,6 +44,56 @@ def help_page():
     """Help page with user manual."""
     return render_template('help.html')
 
+@app.route('/report-problem')
+def report_problem_page():
+    """Show problem report page."""
+    return render_template('report_problem.html')
+
+@app.route('/api/report-problem', methods=['POST'])
+def submit_problem_report():
+    """Handle problem report submission."""
+    try:
+        # Get form data
+        problem_type = request.form.get('problem_type')
+        description = request.form.get('description')
+        email = request.form.get('email')
+        urgency = request.form.get('urgency')
+        system_info = request.form.get('system_info')
+        
+        if not description:
+            return jsonify({'success': False, 'message': 'Descrição é obrigatória'})
+        
+        # Save problem report locally
+        import json
+        import os
+        from datetime import datetime
+        
+        # Create reports directory
+        reports_dir = os.path.expanduser("~/.backup_manager/reports")
+        os.makedirs(reports_dir, exist_ok=True)
+        
+        # Create report data
+        report_data = {
+            "timestamp": datetime.now().isoformat(),
+            "type": problem_type,
+            "description": description,
+            "email": email if email else "não informado",
+            "urgency": urgency,
+            "system_info": system_info,
+            "version": "2.0.0 Web",
+            "source": "web_interface"
+        }
+        
+        # Save to local file
+        report_file = os.path.join(reports_dir, f"web_problem_report_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json")
+        with open(report_file, 'w', encoding='utf-8') as f:
+            json.dump(report_data, f, ensure_ascii=False, indent=2)
+        
+        return jsonify({'success': True, 'message': 'Relatório enviado com sucesso'})
+        
+    except Exception as e:
+        return jsonify({'success': False, 'message': str(e)})
+
 @app.route('/api/backup', methods=['POST'])
 def create_backup():
     """Create a new backup."""

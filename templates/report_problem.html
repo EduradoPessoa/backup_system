@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reportar Problema - PHOENYX Backup Manager</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .brand-header {
+            background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+            color: white;
+            padding: 3rem 0;
+        }
+        .problem-form {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 2rem;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .btn-submit {
+            background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+            border: none;
+            color: white;
+            padding: 12px 30px;
+            border-radius: 25px;
+            font-weight: bold;
+        }
+        .btn-submit:hover {
+            background: linear-gradient(135deg, #c0392b 0%, #a93226 100%);
+            color: white;
+        }
+        .contact-info {
+            background: #e8f5e8;
+            border-left: 4px solid #28a745;
+            padding: 1rem;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <div class="brand-header text-center">
+        <div class="container">
+            <h1><i class="fas fa-bug"></i> Reportar Problema</h1>
+            <p class="lead">Ajude-nos a melhorar o PHOENYX Backup Manager</p>
+            <p><i class="fas fa-shield-alt"></i> PHOENYX TECNOLOGIA © 2025</p>
+        </div>
+    </div>
+
+    <div class="container mt-5">
+        <div class="row justify-content-center">
+            <div class="col-md-8">
+                <div class="problem-form">
+                    <h3 class="text-center mb-4">
+                        <i class="fas fa-exclamation-triangle text-warning"></i>
+                        Descreva o Problema Encontrado
+                    </h3>
+                    
+                    <form id="problemForm" method="POST" action="/api/report-problem">
+                        <div class="mb-3">
+                            <label for="problemType" class="form-label">
+                                <i class="fas fa-tag"></i> Tipo do Problema
+                            </label>
+                            <select class="form-select" id="problemType" name="problem_type" required>
+                                <option value="">Selecione o tipo do problema</option>
+                                <option value="backup_error">Erro durante backup</option>
+                                <option value="restore_error">Erro na restauração</option>
+                                <option value="interface_bug">Problema na interface</option>
+                                <option value="performance">Problema de performance</option>
+                                <option value="file_handling">Problema com arquivos</option>
+                                <option value="other">Outro problema</option>
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="problemDescription" class="form-label">
+                                <i class="fas fa-comment"></i> Descrição Detalhada
+                            </label>
+                            <textarea class="form-control" id="problemDescription" name="description" 
+                                    rows="6" required placeholder="Descreva o problema em detalhes:
+- O que você estava fazendo quando o problema ocorreu?
+- Qual foi o comportamento esperado?
+- O que aconteceu de diferente?
+- Consegue reproduzir o problema?"></textarea>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="userEmail" class="form-label">
+                                        <i class="fas fa-envelope"></i> Seu Email (opcional)
+                                    </label>
+                                    <input type="email" class="form-control" id="userEmail" name="email" 
+                                           placeholder="email@exemplo.com">
+                                    <small class="form-text text-muted">Para atualizações sobre a correção</small>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="urgency" class="form-label">
+                                        <i class="fas fa-tachometer-alt"></i> Urgência
+                                    </label>
+                                    <select class="form-select" id="urgency" name="urgency">
+                                        <option value="low">Baixa - Posso esperar</option>
+                                        <option value="medium" selected>Média - Preciso de ajuda</option>
+                                        <option value="high">Alta - Bloqueando meu trabalho</option>
+                                        <option value="critical">Crítica - Sistema não funciona</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="systemInfo" class="form-label">
+                                <i class="fas fa-desktop"></i> Informações do Sistema (automático)
+                            </label>
+                            <textarea class="form-control" id="systemInfo" name="system_info" 
+                                    rows="3" readonly></textarea>
+                        </div>
+
+                        <div class="text-center">
+                            <button type="submit" class="btn btn-submit">
+                                <i class="fas fa-paper-plane"></i> Enviar Relatório
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Contact Information -->
+                <div class="contact-info mt-4">
+                    <h5><i class="fas fa-phone"></i> Contato Direto</h5>
+                    <p class="mb-1">
+                        <strong>Website:</strong> <a href="https://phoenyx.com.br" target="_blank">https://phoenyx.com.br</a>
+                    </p>
+                    <p class="mb-1">
+                        <strong>Email:</strong> <a href="mailto:suporte@phoenyx.com.br">suporte@phoenyx.com.br</a>
+                    </p>
+                    <p class="mb-1">
+                        <strong>WhatsApp:</strong> <a href="https://wa.me/5519982210377" target="_blank">+55 19 982210377</a>
+                    </p>
+                    <p class="mb-0">
+                        <small><i class="fas fa-clock"></i> Horário de atendimento: Segunda a Sexta, 9h às 18h</small>
+                    </p>
+                </div>
+
+                <div class="text-center mt-4">
+                    <a href="/" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left"></i> Voltar ao Backup
+                    </a>
+                    <a href="/help" class="btn btn-info ms-2">
+                        <i class="fas fa-question-circle"></i> Ver Ajuda
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Auto-populate system information
+        window.addEventListener('load', function() {
+            const systemInfo = document.getElementById('systemInfo');
+            const info = [
+                `Navegador: ${navigator.userAgent}`,
+                `Plataforma: ${navigator.platform}`,
+                `Idioma: ${navigator.language}`,
+                `Tela: ${screen.width}x${screen.height}`,
+                `Data/Hora: ${new Date().toLocaleString('pt-BR')}`
+            ].join('\n');
+            systemInfo.value = info;
+        });
+
+        // Form submission
+        document.getElementById('problemForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(this);
+            
+            // Show loading state
+            const submitBtn = this.querySelector('button[type="submit"]');
+            const originalText = submitBtn.innerHTML;
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Enviando...';
+            submitBtn.disabled = true;
+            
+            // Send report
+            fetch('/api/report-problem', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('✅ Relatório enviado com sucesso!\n\nSeu problema foi registrado e será analisado pela nossa equipe.\nVocê receberá atualizações por email se forneceu seu contato.');
+                    this.reset();
+                } else {
+                    throw new Error(data.message || 'Erro ao enviar relatório');
+                }
+            })
+            .catch(error => {
+                alert('❌ Erro ao enviar relatório: ' + error.message + '\n\nTente novamente ou entre em contato pelo WhatsApp: +55 19 982210377');
+            })
+            .finally(() => {
+                // Restore button
+                submitBtn.innerHTML = originalText;
+                submitBtn.disabled = false;
+            });
+        });
+    </script>
+</body>
+</html>

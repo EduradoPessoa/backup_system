@@ -158,7 +158,7 @@ python admin_dashboard.py
 
 **PHOENYX TECNOLOGIA © 2025**
 - 📧 Email: admin@phoenyx.com.br
-- 📱 WhatsApp: (11) 99999-9999
+- 📱 WhatsApp: +55 19 982210377
 - 🌐 Site: www.phoenyx.com.br
 
 ---
