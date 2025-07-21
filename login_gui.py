@@ -246,12 +246,8 @@ class LoginWindow:
             messagebox.showerror("Erro", "Por favor, digite um email válido.")
             return
         
-        print(f"DEBUG - Tentando registrar usuário: {name} / {email}")
         user_id = user_manager.register_user(name, email)
-        print(f"DEBUG - Resultado do registro: {user_id}")
-        
         if user_id:
-            print("DEBUG - Registro bem-sucedido, fazendo login automático")
             # Fazer login automático após registro
             user = user_manager.login_user(email)
             if user:
@@ -259,7 +255,6 @@ class LoginWindow:
                 messagebox.showinfo("Sucesso", f"Conta criada com sucesso!\nBem-vindo, {name}!")
                 self.close_and_continue()
         else:
-            print("DEBUG - Falha no registro - email já existe")
             messagebox.showerror("Erro", "Este email já está em uso. Tente fazer login.")
     
     def logout_and_show_login(self):
