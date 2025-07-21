@@ -126,9 +126,18 @@ class BackupGUI:
         # Configure root window
         self.root.configure(bg='#f0f0f0')
         
+        # Company branding header
+        header_frame = ttk.Frame(self.root)
+        header_frame.pack(fill=tk.X, padx=15, pady=(15, 5))
+        
+        branding_label = ttk.Label(header_frame, text="PHOENYX TECNOLOGIA © 2025", 
+                                  font=('Segoe UI', 10, 'italic'),
+                                  foreground='#666666')
+        branding_label.pack(anchor='ne')
+        
         # Create notebook for tabs
         self.notebook = ttk.Notebook(self.root)
-        self.notebook.pack(fill=tk.BOTH, expand=True, padx=15, pady=15)
+        self.notebook.pack(fill=tk.BOTH, expand=True, padx=15, pady=(5, 15))
         
         # Create tabs
         self.create_backup_tab()

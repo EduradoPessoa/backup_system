@@ -20,7 +20,7 @@ def main():
     try:
         # Create the main window
         root = tk.Tk()
-        root.title("Desktop Backup Manager")
+        root.title("Desktop Backup Manager - PHOENYX TECNOLOGIA 2025")
         root.geometry("800x600")
         root.minsize(600, 400)
         
