@@ -198,64 +198,119 @@ class LoginWindow:
     
     def do_login(self):
         """Executar login."""
-        email = self.login_email_var.get().strip()
+        try:
+            email_raw = self.login_email_var.get()
+            email = str(email_raw).strip() if email_raw else ""
+            
+            print(f"LOGIN - Email: '{email}' (len: {len(email)}, type: {type(email)})")
+            
+        except Exception as e:
+            print(f"ERRO ao capturar email: {e}")
+            messagebox.showerror("Erro", "Erro interno ao processar email. Tente novamente.")
+            return
         
-        if not email:
-            messagebox.showerror("Erro", "Por favor, digite seu email.")
+        if not email or len(email.strip()) == 0:
+            print("ERRO: Email está vazio")
+            messagebox.showerror("Erro", f"Por favor, digite seu email.\nValor capturado: '{email}'")
             return
         
         if not self.validate_email(email):
-            messagebox.showerror("Erro", "Por favor, digite um email válido.")
+            print("ERRO: Email inválido no login")
+            messagebox.showerror("Erro", f"Por favor, digite um email válido.\nValor: '{email}'")
             return
         
-        user = user_manager.login_user(email)
-        if user:
-            user_manager.save_current_session(user)
-            messagebox.showinfo("Sucesso", f"Bem-vindo de volta, {user['name']}!")
-            self.close_and_continue()
-        else:
-            messagebox.showerror("Erro", "Email não encontrado. Registre-se primeiro na aba 'Registrar'.")
+        print(f"TENTANDO LOGIN: Email='{email}'")
+        
+        try:
+            user = user_manager.login_user(email)
+            print(f"RESULTADO LOGIN: {user}")
+            
+            if user:
+                user_manager.save_current_session(user)
+                messagebox.showinfo("Sucesso", f"Bem-vindo de volta, {user['name']}!")
+                self.close_and_continue()
+            else:
+                print("ERRO: Usuário não encontrado")
+                messagebox.showerror("Erro", "Email não encontrado. Registre-se primeiro na aba 'Registrar'.")
+                
+        except Exception as e:
+            print(f"EXCEÇÃO no login: {e}")
+            import traceback
+            traceback.print_exc()
+            messagebox.showerror("Erro", f"Erro interno: {str(e)}")
     
     def do_register(self):
         """Executar registro."""
-        name = self.register_name_var.get().strip()
-        email = self.register_email_var.get().strip()
+        # Capturar valores com tratamento robusto para Windows
+        try:
+            name_raw = self.register_name_var.get()
+            email_raw = self.register_email_var.get()
+            
+            # Tratamento defensivo para diferentes tipos
+            if name_raw is None:
+                name_raw = ""
+            if email_raw is None:
+                email_raw = ""
+                
+            name = str(name_raw).strip()
+            email = str(email_raw).strip()
+            
+            # Log detalhado para diagnosticar problema no Windows
+            print(f"REGISTRO - Nome: '{name}' (len: {len(name)}, type: {type(name)})")
+            print(f"REGISTRO - Email: '{email}' (len: {len(email)}, type: {type(email)})")
+            
+        except Exception as e:
+            print(f"ERRO ao capturar dados: {e}")
+            messagebox.showerror("Erro", "Erro interno ao processar dados. Tente novamente.")
+            return
         
-        # Debug - imprimir valores capturados
-        print(f"DEBUG - Nome capturado: '{name}' (len: {len(name)})")
-        print(f"DEBUG - Email capturado: '{email}' (len: {len(email)})")
-        print(f"DEBUG - Nome original: '{self.register_name_var.get()}'")
-        print(f"DEBUG - Validação nome vazio: {not name}")
-        print(f"DEBUG - Validação len < 2: {len(name) < 2}")
-        
-        if not name:
-            print("DEBUG - Erro: nome está vazio")
-            messagebox.showerror("Erro", "Por favor, digite seu nome.")
+        # Validação mais robusta
+        if not name or len(name.strip()) == 0:
+            print("ERRO: Nome está vazio após validação")
+            messagebox.showerror("Erro", f"Por favor, digite seu nome.\nValor capturado: '{name}'")
             return
         
         if len(name) < 2:
-            print("DEBUG - Erro: nome muito curto")
-            messagebox.showerror("Erro", "Nome deve ter pelo menos 2 caracteres.")
+            print("ERRO: Nome muito curto")
+            messagebox.showerror("Erro", f"Nome deve ter pelo menos 2 caracteres.\nValor atual: '{name}' (len: {len(name)})")
             return
         
-        if not email:
-            messagebox.showerror("Erro", "Por favor, digite seu email.")
+        if not email or len(email.strip()) == 0:
+            print("ERRO: Email está vazio")
+            messagebox.showerror("Erro", f"Por favor, digite seu email.\nValor capturado: '{email}'")
             return
         
         if not self.validate_email(email):
-            messagebox.showerror("Erro", "Por favor, digite um email válido.")
+            print("ERRO: Email inválido")
+            messagebox.showerror("Erro", f"Por favor, digite um email válido.\nValor: '{email}'")
             return
         
-        user_id = user_manager.register_user(name, email)
-        if user_id:
-            # Fazer login automático após registro
-            user = user_manager.login_user(email)
-            if user:
-                user_manager.save_current_session(user)
-                messagebox.showinfo("Sucesso", f"Conta criada com sucesso!\nBem-vindo, {name}!")
-                self.close_and_continue()
-        else:
-            messagebox.showerror("Erro", "Este email já está em uso. Tente fazer login.")
+        print(f"TENTANDO REGISTRAR: Nome='{name}', Email='{email}'")
+        
+        try:
+            user_id = user_manager.register_user(name, email)
+            print(f"RESULTADO REGISTRO: {user_id}")
+            
+            if user_id:
+                print("REGISTRO OK - Fazendo login automático")
+                # Fazer login automático após registro
+                user = user_manager.login_user(email)
+                if user:
+                    user_manager.save_current_session(user)
+                    messagebox.showinfo("Sucesso", f"Conta criada com sucesso!\nBem-vindo, {name}!")
+                    self.close_and_continue()
+                else:
+                    print("ERRO: Falha no login automático")
+                    messagebox.showerror("Erro", "Conta criada, mas falha no login. Tente fazer login manualmente.")
+            else:
+                print("ERRO: Falha no registro")
+                messagebox.showerror("Erro", "Este email já está em uso. Tente fazer login na aba 'Entrar'.")
+                
+        except Exception as e:
+            print(f"EXCEÇÃO no registro: {e}")
+            import traceback
+            traceback.print_exc()
+            messagebox.showerror("Erro", f"Erro interno: {str(e)}")
     
     def logout_and_show_login(self):
         """Fazer logout e mostrar formulário de login."""
