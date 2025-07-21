@@ -115,7 +115,11 @@ class BackupManager:
                             progress_callback(progress_pct, 100, 
                                             f"Calculando tamanho: {i+1}/{len(file_list)} arquivos")
                             
-                except (OSError, IOError):
+                except (OSError, IOError) as e:
+                    # Log erro mas continua
+                    if progress_callback:
+                        progress_callback(30 + ((i + 1) / len(file_list)) * 50, 100, 
+                                        f"Erro no arquivo {os.path.basename(file_path)}: {str(e)}")
                     continue
             
             if progress_callback:

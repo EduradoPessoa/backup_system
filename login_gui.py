@@ -198,122 +198,95 @@ class LoginWindow:
     
     def do_login(self):
         """Executar login."""
+        # Força atualização e captura direta
+        self.root.update_idletasks()
+        self.root.update()
+        
         try:
-            email_raw = self.login_email_var.get()
-            email = str(email_raw).strip() if email_raw else ""
+            email = self.login_email_var.get().strip()
             
-            print(f"LOGIN - Email: '{email}' (len: {len(email)}, type: {type(email)})")
+            # Se não conseguir pela StringVar, buscar diretamente no Entry 
+            if not email:
+                # Buscar Entry na aba atual
+                for widget in self.root.winfo_children():
+                    if isinstance(widget, ttk.Notebook):
+                        current_tab = widget.nametowidget(widget.select())
+                        entries = []
+                        self._find_entry_widgets(current_tab, entries)
+                        if entries:
+                            email = entries[0].get().strip()
+                            break
             
         except Exception as e:
-            print(f"ERRO ao capturar email: {e}")
-            messagebox.showerror("Erro", "Erro interno ao processar email. Tente novamente.")
+            messagebox.showerror("Erro", "Erro ao capturar email. Tente novamente.")
             return
         
-        if not email or len(email.strip()) == 0:
-            print("ERRO: Email está vazio")
-            messagebox.showerror("Erro", f"Por favor, digite seu email.\nValor capturado: '{email}'")
+        if not email or not self.validate_email(email):
+            messagebox.showerror("Erro", "Por favor, digite um email válido.")
             return
-        
-        if not self.validate_email(email):
-            print("ERRO: Email inválido no login")
-            messagebox.showerror("Erro", f"Por favor, digite um email válido.\nValor: '{email}'")
-            return
-        
-        print(f"TENTANDO LOGIN: Email='{email}'")
         
         try:
             user = user_manager.login_user(email)
-            print(f"RESULTADO LOGIN: {user}")
             
             if user:
                 user_manager.save_current_session(user)
                 messagebox.showinfo("Sucesso", f"Bem-vindo de volta, {user['name']}!")
                 self.close_and_continue()
             else:
-                print("ERRO: Usuário não encontrado")
                 messagebox.showerror("Erro", "Email não encontrado. Registre-se primeiro na aba 'Registrar'.")
                 
         except Exception as e:
-            print(f"EXCEÇÃO no login: {e}")
-            import traceback
-            traceback.print_exc()
             messagebox.showerror("Erro", f"Erro interno: {str(e)}")
     
     def do_register(self):
         """Executar registro."""
-        # Força atualização dos widgets antes de capturar valores
-        self.root.update_idletasks()
-        self.root.update()
-        
-        # Capturar valores com múltiplas tentativas
+        # Capturar valores diretamente dos Entry widgets  
         try:
-            # Primeira tentativa normal
-            name_raw = self.register_name_var.get()
-            email_raw = self.register_email_var.get()
+            # Encontrar os Entry widgets corretos
+            name_entry = None
+            email_entry = None
             
-            # Se vazio, tentar capturar diretamente do widget
-            if not name_raw or name_raw.strip() == "":
-                # Buscar o widget diretamente
-                for widget in self.root.winfo_children():
-                    if hasattr(widget, 'winfo_children'):
-                        for child in widget.winfo_children():
-                            if hasattr(child, 'winfo_children'):
-                                for grandchild in child.winfo_children():
-                                    if isinstance(grandchild, ttk.Entry):
-                                        potential_name = grandchild.get()
-                                        if potential_name and len(potential_name.strip()) > 1:
-                                            name_raw = potential_name
-                                            break
+            # Buscar widgets de entrada na aba de registro
+            notebook = None
+            for widget in self.root.winfo_children():
+                if isinstance(widget, ttk.Notebook):
+                    notebook = widget
+                    break
             
-            # Tratamento defensivo
-            if name_raw is None:
-                name_raw = ""
-            if email_raw is None:
-                email_raw = ""
+            if notebook:
+                # Encontrar aba "Registrar" 
+                for tab_id in notebook.tabs():
+                    tab_text = notebook.tab(tab_id, "text")
+                    if "Registrar" in tab_text:
+                        tab_frame = notebook.nametowidget(tab_id)
+                        # Encontrar Entry widgets nesta aba
+                        entries = []
+                        self._find_entry_widgets(tab_frame, entries)
+                        
+                        if len(entries) >= 2:
+                            name_entry = entries[0]  # Primeiro Entry é nome
+                            email_entry = entries[1]  # Segundo Entry é email
+                            break
+            
+            # Capturar valores diretamente
+            if name_entry and email_entry:
+                name = name_entry.get().strip()
+                email = email_entry.get().strip()
+            else:
+                # Fallback para StringVar se não encontrar widgets
+                name = self.register_name_var.get().strip() 
+                email = self.register_email_var.get().strip()
                 
-            name = str(name_raw).strip()
-            email = str(email_raw).strip()
-            
-            # Valores capturados com sucesso
-            
         except Exception as e:
-            messagebox.showerror("Erro", "Erro interno ao processar dados. Tente novamente.")
+            messagebox.showerror("Erro", "Erro ao capturar dados. Tente novamente.")
             return
         
-        # Validação mais robusta com prompt de re-entrada
-        if not name or len(name.strip()) == 0:
-            
-            # Solicitar entrada manual como fallback
-            import tkinter.simpledialog as simpledialog
-            name = simpledialog.askstring("Nome Obrigatório", 
-                                        "O sistema não conseguiu capturar seu nome.\n"
-                                        "Por favor, digite seu nome completo:")
-            
-            if not name or len(name.strip()) < 2:
-                messagebox.showerror("Erro", "Nome é obrigatório para criar conta.")
-                return
-            
-            name = name.strip()
-        
-        if len(name) < 2:
-            messagebox.showerror("Erro", "Nome deve ter pelo menos 2 caracteres.")
+        # Validação simples
+        if not name or len(name) < 2:
+            messagebox.showerror("Erro", "Por favor, digite seu nome completo (mínimo 2 caracteres).")
             return
         
-        if not email or len(email.strip()) == 0:
-            
-            # Solicitar entrada manual como fallback
-            import tkinter.simpledialog as simpledialog
-            email = simpledialog.askstring("Email Obrigatório", 
-                                         "O sistema não conseguiu capturar seu email.\n"
-                                         "Por favor, digite seu email:")
-            
-            if not email or len(email.strip()) == 0:
-                messagebox.showerror("Erro", "Email é obrigatório para criar conta.")
-                return
-            
-            email = email.strip()
-        
-        if not self.validate_email(email):
+        if not email or not self.validate_email(email):
             messagebox.showerror("Erro", "Por favor, digite um email válido.")
             return
         
@@ -334,6 +307,14 @@ class LoginWindow:
                 
         except Exception as e:
             messagebox.showerror("Erro", f"Erro interno: {str(e)}")
+    
+    def _find_entry_widgets(self, parent, entries):
+        """Buscar widgets Entry recursivamente."""
+        for child in parent.winfo_children():
+            if isinstance(child, ttk.Entry):
+                entries.append(child)
+            elif hasattr(child, 'winfo_children'):
+                self._find_entry_widgets(child, entries)
     
     def logout_and_show_login(self):
         """Fazer logout e mostrar formulário de login."""

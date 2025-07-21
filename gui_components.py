@@ -428,40 +428,52 @@ class BackupGUI:
             messagebox.showerror("Erro", "A pasta de destino não existe.")
             return
         
-        # Create progress modal for calculation phase
-        self.calculation_modal = ProgressModal(self.root, "Calculando Backup")
+        # Criar modal separado para análise de espaço
+        self.calculation_modal = ProgressModal(self.root, "Analisando Espaço")
         
-        # Disable backup button and enable cancel
+        # Desabilitar botão e habilitar cancelar
         self.backup_button.config(state=tk.DISABLED)
         self.cancel_button.config(state=tk.NORMAL)
         self.backup_in_progress = True
         
-        # Start backup in separate thread
+        # Iniciar backup em thread separada
         backup_thread = threading.Thread(target=self.run_backup, daemon=True)
         backup_thread.start()
     
     def run_backup(self):
-        """Run the backup process in background thread."""
+        """Executar processo de backup em thread separada."""
         try:
+            calculation_phase = True
+            
             def progress_callback(current, total, message):
+                nonlocal calculation_phase
                 progress = (current / total) * 100 if total > 0 else 0
                 
-                # Update calculation modal during size calculation phase (0-80%)
-                if hasattr(self, 'calculation_modal') and progress <= 80:
-                    self.root.after(0, lambda: self.calculation_modal.update_status(message, current, total))
-                    
-                    # Check if user cancelled during calculation
-                    if self.calculation_modal.cancelled:
-                        self.backup_manager.cancel_backup()
-                        return
+                # Fase de cálculo (0-80%) - apenas modal progride
+                if calculation_phase and progress <= 80:
+                    if hasattr(self, 'calculation_modal'):
+                        self.root.after(0, lambda p=progress, m=message: 
+                                      self.calculation_modal.update_status(m, p, 100))
+                        
+                        # Verificar cancelamento
+                        if self.calculation_modal.cancelled:
+                            self.backup_manager.cancel_backup()
+                            return
                 
-                # Close calculation modal and switch to main progress at 80%
-                elif hasattr(self, 'calculation_modal') and progress > 80:
-                    self.root.after(0, lambda: self.calculation_modal.close())
-                    delattr(self, 'calculation_modal')
+                # Iniciar backup real (>80%) - fechar modal e usar progresso principal
+                elif calculation_phase and progress > 80:
+                    calculation_phase = False
+                    if hasattr(self, 'calculation_modal'):
+                        self.root.after(0, lambda: self.calculation_modal.close())
+                        delattr(self, 'calculation_modal')
+                    # Atualizar progresso principal
+                    self.root.after(0, lambda p=progress, m=message: 
+                                  self.update_progress(p, m))
                 
-                # Update main progress bar
-                self.root.after(0, lambda: self.update_progress(progress, message))
+                # Fase de backup - apenas progresso principal
+                elif not calculation_phase:
+                    self.root.after(0, lambda p=progress, m=message: 
+                                  self.update_progress(p, m))
             
             backup_name = self.backup_manager.create_backup(
                 self.source_folders,
@@ -473,7 +485,7 @@ class BackupGUI:
                 self.incremental_var.get()
             )
             
-            # Ensure calculation modal is closed
+            # Garantir que modal seja fechado
             if hasattr(self, 'calculation_modal'):
                 self.root.after(0, lambda: self.calculation_modal.close())
                 delattr(self, 'calculation_modal')
@@ -481,16 +493,20 @@ class BackupGUI:
             if backup_name and self.backup_in_progress:
                 self.root.after(0, lambda: self.backup_completed(backup_name))
             elif self.backup_in_progress:
-                self.root.after(0, lambda: self.backup_failed("Backup failed"))
+                self.root.after(0, lambda: self.backup_failed("Backup falhou"))
                 
         except Exception as e:
-            # Ensure calculation modal is closed on error
+            # Garantir fechamento do modal em caso de erro
             if hasattr(self, 'calculation_modal'):
                 self.root.after(0, lambda: self.calculation_modal.close())
                 delattr(self, 'calculation_modal')
-                
+            
+            # Log do erro e perguntar se pula
+            error_msg = str(e)
+            self.log_message(f"ERRO: {error_msg}")
+            
             if self.backup_in_progress:
-                self.root.after(0, lambda: self.backup_failed(str(e)))
+                self.root.after(0, lambda: self.backup_failed_with_options(error_msg))
     
     def update_progress(self, progress, message):
         """Update progress bar and status."""
@@ -499,29 +515,75 @@ class BackupGUI:
         self.log_message(f"Progress: {progress:.1f}% - {message}")
     
     def backup_completed(self, backup_name):
-        """Handle backup completion."""
+        """Manipular conclusão do backup."""
         self.backup_in_progress = False
         self.backup_button.config(state=tk.NORMAL)
         self.cancel_button.config(state=tk.DISABLED)
         self.progress_var.set(100)
-        self.status_label.config(text="Backup completed successfully")
+        self.status_label.config(text="Backup concluído com sucesso")
         
-        self.log_message(f"Backup completed: {backup_name}")
-        messagebox.showinfo("Success", f"Backup completed successfully!\nBackup name: {backup_name}")
+        self.log_message(f"Backup concluído: {backup_name}")
+        messagebox.showinfo("Sucesso", f"Backup concluído com sucesso!\nNome: {backup_name}")
         
-        # Refresh catalog
+        # Resetar campos da interface
+        self.reset_backup_fields()
+        
+        # Atualizar catálogo
         self.refresh_catalog()
         self.refresh_backup_list()
     
     def backup_failed(self, error_message):
-        """Handle backup failure."""
+        """Manipular falha do backup."""
         self.backup_in_progress = False
         self.backup_button.config(state=tk.NORMAL)
         self.cancel_button.config(state=tk.DISABLED)
-        self.status_label.config(text="Backup failed")
+        self.status_label.config(text="Backup falhou")
         
-        self.log_message(f"Backup failed: {error_message}")
-        messagebox.showerror("Backup Failed", f"Backup failed: {error_message}")
+        self.log_message(f"Backup falhou: {error_message}")
+        messagebox.showerror("Backup Falhou", f"Backup falhou: {error_message}")
+    
+    def backup_failed_with_options(self, error_message):
+        """Manipular falha com opções de continuar.""" 
+        self.backup_in_progress = False
+        self.backup_button.config(state=tk.NORMAL)
+        self.cancel_button.config(state=tk.DISABLED)
+        self.status_label.config(text="Backup falhou")
+        
+        self.log_message(f"ERRO NO BACKUP: {error_message}")
+        
+        # Perguntar se quer tentar pular o erro
+        result = messagebox.askyesnocancel(
+            "Erro no Backup", 
+            f"Erro encontrado: {error_message}\n\n"
+            "Deseja:\n"
+            "• SIM - Tentar pular arquivos com problema\n" 
+            "• NÃO - Parar o backup\n"
+            "• CANCELAR - Ver detalhes no log"
+        )
+        
+        if result is True:
+            # Tentar novamente pulando erros
+            self.log_message("Usuário escolheu pular arquivos com problema")
+            # Aqui poderia implementar lógica para pular arquivos problemáticos
+        elif result is False:
+            self.log_message("Usuário escolheu parar o backup")
+        else:
+            self.log_message("Usuário escolheu verificar detalhes no log")
+    
+    def reset_backup_fields(self):
+        """Resetar campos após backup completo."""
+        # Limpar lista de pastas
+        self.source_folders.clear()
+        self.folder_listbox.delete(0, tk.END)
+        
+        # Limpar título do backup
+        self.backup_title_var.set("")
+        
+        # Resetar progresso
+        self.progress_var.set(0)
+        self.status_label.config(text="Pronto para novo backup")
+        
+        self.log_message("Campos resetados para novo backup")
     
     def cancel_backup(self):
         """Cancel the backup process."""
