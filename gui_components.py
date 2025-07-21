@@ -144,6 +144,7 @@ class BackupGUI:
         self.create_restore_tab()
         self.create_catalog_tab()
         self.create_settings_tab()
+        self.create_help_tab()
     
     def create_backup_tab(self):
         """Create the backup tab."""
@@ -374,6 +375,132 @@ class BackupGUI:
         ttk.Button(log_btn_frame, text="Clear Log", command=self.clear_log).pack(side=tk.LEFT, padx=(0, 5))
         ttk.Button(log_btn_frame, text="Save Log", command=self.save_log).pack(side=tk.LEFT)
     
+    def create_help_tab(self):
+        """Create the help tab."""
+        self.help_frame = ttk.Frame(self.notebook)
+        self.notebook.add(self.help_frame, text="📖 Ajuda")
+        
+        # Main help container with scrollbar
+        canvas = tk.Canvas(self.help_frame, bg='white')
+        scrollbar = ttk.Scrollbar(self.help_frame, orient="vertical", command=canvas.yview)
+        scrollable_frame = ttk.Frame(canvas)
+        
+        scrollable_frame.bind(
+            "<Configure>",
+            lambda e: canvas.configure(scrollregion=canvas.bbox("all"))
+        )
+        
+        canvas.create_window((0, 0), window=scrollable_frame, anchor="nw")
+        canvas.configure(yscrollcommand=scrollbar.set)
+        
+        # Title section
+        title_frame = ttk.Frame(scrollable_frame)
+        title_frame.pack(fill=tk.X, padx=20, pady=20)
+        
+        title_label = ttk.Label(title_frame, text="📖 Manual de Uso - PHOENYX Backup Manager", 
+                               font=('Segoe UI', 16, 'bold'))
+        title_label.pack(anchor='w')
+        
+        subtitle_label = ttk.Label(title_frame, text="PHOENYX TECNOLOGIA © 2025", 
+                                  font=('Segoe UI', 10, 'italic'), foreground='#666666')
+        subtitle_label.pack(anchor='w', pady=(5, 0))
+        
+        # Quick start section
+        quick_frame = ttk.LabelFrame(scrollable_frame, text="🚀 Início Rápido - 3 Passos", padding=15)
+        quick_frame.pack(fill=tk.X, padx=20, pady=10)
+        
+        quick_steps = [
+            "1️⃣ Na aba 'Backup': Clique em 'Adicionar Pasta' e selecione as pastas que deseja proteger",
+            "2️⃣ Defina um 'Título do Backup' descritivo (ex: Documentos_2025, Fotos_Familia)",
+            "3️⃣ Escolha a pasta de destino e clique em 'Iniciar Backup' - Pronto!"
+        ]
+        
+        for step in quick_steps:
+            step_label = ttk.Label(quick_frame, text=step, font=('Segoe UI', 11), wraplength=550)
+            step_label.pack(anchor='w', pady=2)
+        
+        # Features section
+        features_frame = ttk.LabelFrame(scrollable_frame, text="🎯 Recursos Principais", padding=15)
+        features_frame.pack(fill=tk.X, padx=20, pady=10)
+        
+        features = [
+            "✅ Backup Incremental: Salva apenas arquivos novos ou modificados",
+            "✅ Múltiplos Formatos: ZIP (rápido), TAR.GZ (balanceado), 7Z (máxima compressão)",
+            "✅ Gestão Inteligente: Cataloga automaticamente todos os backups criados",
+            "✅ Restauração Seletiva: Escolha exatamente quais arquivos restaurar",
+            "✅ Interface Amigável: Design simples e intuitivo em português"
+        ]
+        
+        for feature in features:
+            feature_label = ttk.Label(features_frame, text=feature, font=('Segoe UI', 11), wraplength=550)
+            feature_label.pack(anchor='w', pady=2)
+        
+        # Usage tips section
+        tips_frame = ttk.LabelFrame(scrollable_frame, text="💡 Dicas Importantes", padding=15)
+        tips_frame.pack(fill=tk.X, padx=20, pady=10)
+        
+        tips = [
+            "🔒 Segurança: Mantenha backups em locais diferentes (HD externo, nuvem)",
+            "📅 Frequência: Execute backups regulares (diário para documentos, semanal para fotos)",
+            "🏷️ Organização: Use títulos descritivos para facilitar identificação",
+            "💾 Espaço: Backup incremental economiza espaço significativo",
+            "⚡ Performance: 7Z é mais lento mas compacta melhor, ZIP é mais rápido"
+        ]
+        
+        for tip in tips:
+            tip_label = ttk.Label(tips_frame, text=tip, font=('Segoe UI', 11), wraplength=550)
+            tip_label.pack(anchor='w', pady=2)
+        
+        # Shortcuts section  
+        shortcuts_frame = ttk.LabelFrame(scrollable_frame, text="⌨️ Atalhos de Teclado", padding=15)
+        shortcuts_frame.pack(fill=tk.X, padx=20, pady=10)
+        
+        shortcuts = [
+            "Ctrl + A: Adicionar pasta nas abas Backup/Restore",
+            "Ctrl + R: Atualizar catálogo ou lista de backups",
+            "F5: Recarregar informações da aba atual",
+            "Delete: Remover item selecionado (quando aplicável)",
+            "Enter: Confirmar ação em campos de texto"
+        ]
+        
+        for shortcut in shortcuts:
+            shortcut_label = ttk.Label(shortcuts_frame, text=shortcut, font=('Consolas', 10), wraplength=550)
+            shortcut_label.pack(anchor='w', pady=2)
+        
+        # Troubleshooting section
+        trouble_frame = ttk.LabelFrame(scrollable_frame, text="🔧 Solução de Problemas", padding=15)
+        trouble_frame.pack(fill=tk.X, padx=20, pady=10)
+        
+        troubleshooting = [
+            "❓ Arquivo em uso: Feche programas que possam estar usando os arquivos",
+            "❓ Sem espaço: Verifique espaço livre no destino antes do backup", 
+            "❓ Backup lento: Use ZIP para velocidade ou 7Z para economia de espaço",
+            "❓ Não encontra backup: Verifique se o arquivo ainda existe no local original",
+            "❓ Erro de permissão: Execute como administrador se necessário"
+        ]
+        
+        for issue in troubleshooting:
+            issue_label = ttk.Label(trouble_frame, text=issue, font=('Segoe UI', 10), wraplength=550)
+            issue_label.pack(anchor='w', pady=2)
+        
+        # Footer
+        footer_frame = ttk.Frame(scrollable_frame)
+        footer_frame.pack(fill=tk.X, padx=20, pady=20)
+        
+        footer_label = ttk.Label(footer_frame, 
+                               text="Para mais informações visite: phoenyxtecnologia.com\nSuporte: suporte@phoenyxtecnologia.com", 
+                               font=('Segoe UI', 9, 'italic'), foreground='#666666', justify='center')
+        footer_label.pack(anchor='center')
+        
+        # Pack canvas and scrollbar
+        canvas.pack(side="left", fill="both", expand=True)
+        scrollbar.pack(side="right", fill="y")
+        
+        # Bind mousewheel to canvas
+        def _on_mousewheel(event):
+            canvas.yview_scroll(int(-1*(event.delta/120)), "units")
+        canvas.bind_all("<MouseWheel>", _on_mousewheel)
+    
     def add_source_folder(self):
         """Add a source folder for backup."""
         folder = filedialog.askdirectory(title="Select folder to backup")
@@ -574,7 +701,7 @@ class BackupGUI:
         """Resetar campos após backup completo."""
         # Limpar lista de pastas
         self.source_folders.clear()
-        self.folder_listbox.delete(0, tk.END)
+        self.source_listbox.delete(0, tk.END)
         
         # Limpar título do backup
         self.backup_title_var.set("")
