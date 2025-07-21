@@ -14,8 +14,10 @@ import shutil
 try:
     import py7zr
     SEVENZ_AVAILABLE = True
+    print("✅ py7zr library loaded successfully - 7Z compression available")
 except ImportError:
     SEVENZ_AVAILABLE = False
+    print("❌ py7zr library not found - 7Z compression disabled")
     print("Warning: py7zr not available. 7z compression disabled.")
 
 from catalog_manager import CatalogManager
@@ -287,38 +289,51 @@ class BackupManager:
     def _create_7z_backup(self, backup_path, file_list, source_folders, total_size, progress_callback):
         """Create 7Z backup with maximum compression."""
         if not SEVENZ_AVAILABLE:
-            raise Exception("7z compression not available. Please install py7zr.")
+            raise Exception("Compressão 7Z não disponível. Biblioteca py7zr não encontrada.")
+        
+        print(f"Iniciando backup 7Z: {len(file_list)} arquivos para {backup_path}")
         
         try:
             processed_size = 0
+            files_added = 0
+            
+            print(f"Criando arquivo 7Z: {backup_path}")
+            print(f"Arquivos para processar: {len(file_list)}")
             
             with py7zr.SevenZipFile(backup_path, 'w') as szf:
                 for file_path in file_list:
                     if self.cancel_flag.is_set():
+                        print("Backup cancelado pelo usuário")
                         return False
                     
                     try:
                         # Calculate relative path for archive
                         arcname = self._get_archive_name(file_path, source_folders)
+                        print(f"Adicionando: {file_path} -> {arcname}")
                         
                         # Add file to archive
                         szf.write(file_path, arcname)
+                        files_added += 1
                         
                         # Update progress
                         file_size = get_file_size(file_path)
                         processed_size += file_size
                         
                         if progress_callback and total_size > 0:
-                            progress = (processed_size / total_size) * 100
-                            progress_callback(progress, 100, f"Backing up: {os.path.basename(file_path)}")
+                            progress = 80 + (processed_size / total_size) * 20  # 80-100%
+                            progress_callback(progress, 100, f"Comprimindo: {os.path.basename(file_path)}")
                     
                     except (OSError, IOError) as e:
+                        print(f"Erro ao adicionar {file_path}: {e}")
                         # Skip files that can't be read
                         if progress_callback:
-                            progress_callback(processed_size / total_size * 100, 100, 
-                                            f"Skipped: {os.path.basename(file_path)} ({str(e)})")
+                            progress = 80 + (processed_size / total_size) * 20
+                            progress_callback(progress, 100, 
+                                            f"Pulado: {os.path.basename(file_path)} ({str(e)})")
                         continue
             
+            print(f"7Z criado com sucesso: {files_added} arquivos adicionados")
+            print(f"Arquivo existe após criação: {os.path.exists(backup_path)}")
             return True
             
         except Exception as e:
