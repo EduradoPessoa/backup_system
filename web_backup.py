@@ -48,12 +48,16 @@ def create_backup():
         destination_path = data.get('destination_path', '')
         compression_type = data.get('compression_type', 'zip')
         include_subdirs = data.get('include_subdirs', True)
+        backup_title = data.get('backup_title', '')
         
         if not source_folders:
             return jsonify({'error': 'No source folders selected'}), 400
         
         if not destination_path:
             return jsonify({'error': 'No destination path specified'}), 400
+            
+        if not backup_title:
+            return jsonify({'error': 'Backup title is required'}), 400
         
         if not os.path.exists(destination_path):
             return jsonify({'error': 'Destination path does not exist'}), 400
@@ -70,7 +74,7 @@ def create_backup():
         # Start backup in background thread
         backup_thread = threading.Thread(
             target=run_backup_thread,
-            args=(valid_folders, destination_path, compression_type, include_subdirs)
+            args=(valid_folders, destination_path, compression_type, include_subdirs, backup_title)
         )
         backup_thread.daemon = True
         backup_thread.start()
@@ -80,7 +84,7 @@ def create_backup():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
-def run_backup_thread(source_folders, destination_path, compression_type, include_subdirs):
+def run_backup_thread(source_folders, destination_path, compression_type, include_subdirs, backup_title):
     """Run backup in background thread."""
     global backup_status
     
@@ -103,7 +107,8 @@ def run_backup_thread(source_folders, destination_path, compression_type, includ
             destination_path,
             compression_type,
             include_subdirs,
-            progress_callback
+            progress_callback,
+            backup_title
         )
         
         if backup_name:

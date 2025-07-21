@@ -8,6 +8,7 @@ This is a desktop backup application built with Python and tkinter that provides
 
 Preferred communication style: Simple, everyday language.
 User language: Portuguese (user requested in Portuguese).
+UI Preferences: Larger fonts for better visibility (25% increase requested).
 
 ## System Architecture
 
@@ -104,3 +105,45 @@ The application is designed as a standalone desktop application:
 - **Packaging**: Can be packaged using tools like PyInstaller for executable distribution
 
 The modular structure allows for easy maintenance and feature additions while keeping the deployment process simple and straightforward.
+
+## Recent Updates (January 2025)
+
+### Command Line Interface (CLI)
+- **Date**: 2025-01-21
+- **File**: `backup_cli.py`
+- **Features Added**:
+  - Complete command-line interface for automation
+  - Windows Task Scheduler compatibility
+  - Commands: backup, list, restore, info
+  - Progress tracking and verbose output options
+  - Custom backup titles support
+  - Multiple compression formats (ZIP, TAR.GZ)
+  - Comprehensive help and examples
+
+### Open Files Handling
+- **Date**: 2025-01-21
+- **File**: `open_files_handler.py`
+- **Features Added**:
+  - Robust handling of locked/open files during backup
+  - Retry logic with multiple fallback methods
+  - File lock detection and reporting
+  - Detailed backup reports with skipped files
+  - Shadow copy support framework (Windows)
+  - Smart file type detection for common locked files
+
+### UI/UX Improvements
+- **Date**: 2025-01-21
+- **Files**: `gui_components.py`, `templates/index.html`
+- **Improvements Made**:
+  - Increased font sizes by 25% for better visibility
+  - Enhanced spacing and padding throughout interface
+  - Portuguese language labels in desktop application
+  - Improved button styling and hover effects
+  - Better visual hierarchy with enhanced colors
+  - Responsive design improvements for web interface
+  - Enhanced progress bars and status indicators
+
+### Interface Localization
+- **Desktop App**: Full Portuguese translation of labels and buttons
+- **Web App**: Enhanced styling with larger fonts and better spacing
+- **CLI**: Portuguese command descriptions and error messages

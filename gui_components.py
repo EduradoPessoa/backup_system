@@ -32,9 +32,24 @@ class BackupGUI:
     
     def setup_gui(self):
         """Setup the main GUI layout."""
+        # Configure default fonts (25% larger)
+        default_font = ('Segoe UI', 11)  # Base font increased from 9 to 11
+        heading_font = ('Segoe UI', 14, 'bold')  # Heading font increased from 11 to 14
+        button_font = ('Segoe UI', 10)  # Button font increased from 8 to 10
+        
+        # Configure style for better appearance
+        style = ttk.Style()
+        style.configure('TLabel', font=default_font)
+        style.configure('TButton', font=button_font, padding=(10, 5))
+        style.configure('TLabelFrame.Label', font=heading_font)
+        style.configure('TNotebook.Tab', font=default_font, padding=(15, 8))
+        
+        # Configure root window
+        self.root.configure(bg='#f0f0f0')
+        
         # Create notebook for tabs
         self.notebook = ttk.Notebook(self.root)
-        self.notebook.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
+        self.notebook.pack(fill=tk.BOTH, expand=True, padx=15, pady=15)
         
         # Create tabs
         self.create_backup_tab()
@@ -48,14 +63,15 @@ class BackupGUI:
         self.notebook.add(self.backup_frame, text="Backup")
         
         # Source folders section
-        source_frame = ttk.LabelFrame(self.backup_frame, text="Source Folders", padding=10)
-        source_frame.pack(fill=tk.BOTH, expand=True, padx=5, pady=5)
+        source_frame = ttk.LabelFrame(self.backup_frame, text="Pastas de Origem", padding=15)
+        source_frame.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
         
         # Source folders listbox with scrollbar
         list_frame = ttk.Frame(source_frame)
         list_frame.pack(fill=tk.BOTH, expand=True)
         
-        self.source_listbox = tk.Listbox(list_frame, selectmode=tk.EXTENDED)
+        self.source_listbox = tk.Listbox(list_frame, selectmode=tk.EXTENDED, 
+                                        font=('Consolas', 10), height=8)
         scrollbar_y = ttk.Scrollbar(list_frame, orient=tk.VERTICAL, command=self.source_listbox.yview)
         scrollbar_x = ttk.Scrollbar(list_frame, orient=tk.HORIZONTAL, command=self.source_listbox.xview)
         
@@ -67,43 +83,57 @@ class BackupGUI:
         
         # Source buttons
         source_btn_frame = ttk.Frame(source_frame)
-        source_btn_frame.pack(fill=tk.X, pady=(5, 0))
+        source_btn_frame.pack(fill=tk.X, pady=(10, 0))
         
-        ttk.Button(source_btn_frame, text="Add Folder", command=self.add_source_folder).pack(side=tk.LEFT, padx=(0, 5))
-        ttk.Button(source_btn_frame, text="Remove Selected", command=self.remove_source_folder).pack(side=tk.LEFT, padx=(0, 5))
-        ttk.Button(source_btn_frame, text="Clear All", command=self.clear_source_folders).pack(side=tk.LEFT)
+        ttk.Button(source_btn_frame, text="Adicionar Pasta", command=self.add_source_folder).pack(side=tk.LEFT, padx=(0, 10))
+        ttk.Button(source_btn_frame, text="Remover Selecionada", command=self.remove_source_folder).pack(side=tk.LEFT, padx=(0, 10))
+        ttk.Button(source_btn_frame, text="Limpar Todas", command=self.clear_source_folders).pack(side=tk.LEFT)
+        
+        # Backup configuration section
+        config_frame = ttk.LabelFrame(self.backup_frame, text="Configuração do Backup", padding=15)
+        config_frame.pack(fill=tk.X, padx=10, pady=10)
+        
+        # Backup title
+        title_frame = ttk.Frame(config_frame)
+        title_frame.pack(fill=tk.X, pady=(0, 10))
+        
+        ttk.Label(title_frame, text="Título do Backup:", font=('Segoe UI', 11, 'bold')).pack(side=tk.LEFT)
+        self.backup_title_var = tk.StringVar()
+        title_entry = ttk.Entry(title_frame, textvariable=self.backup_title_var, width=35, font=('Segoe UI', 10))
+        title_entry.pack(side=tk.LEFT, padx=(10, 0))
+        ttk.Label(title_frame, text="(Ex: Documentos_2025, Fotos_Familia)", font=('Segoe UI', 9, 'italic')).pack(side=tk.LEFT, padx=(10, 0))
         
         # Destination section
-        dest_frame = ttk.LabelFrame(self.backup_frame, text="Destination", padding=10)
-        dest_frame.pack(fill=tk.X, padx=5, pady=5)
+        dest_frame = ttk.LabelFrame(self.backup_frame, text="Destino", padding=15)
+        dest_frame.pack(fill=tk.X, padx=10, pady=10)
         
         dest_entry_frame = ttk.Frame(dest_frame)
         dest_entry_frame.pack(fill=tk.X)
         
-        ttk.Entry(dest_entry_frame, textvariable=self.destination_path, width=50).pack(side=tk.LEFT, fill=tk.X, expand=True, padx=(0, 5))
-        ttk.Button(dest_entry_frame, text="Browse", command=self.browse_destination).pack(side=tk.RIGHT)
+        ttk.Entry(dest_entry_frame, textvariable=self.destination_path, width=50, font=('Segoe UI', 10)).pack(side=tk.LEFT, fill=tk.X, expand=True, padx=(0, 10))
+        ttk.Button(dest_entry_frame, text="Procurar", command=self.browse_destination).pack(side=tk.RIGHT)
         
         # Backup options
-        options_frame = ttk.LabelFrame(self.backup_frame, text="Backup Options", padding=10)
-        options_frame.pack(fill=tk.X, padx=5, pady=5)
+        options_frame = ttk.LabelFrame(self.backup_frame, text="Opções do Backup", padding=15)
+        options_frame.pack(fill=tk.X, padx=10, pady=10)
         
         self.compression_var = tk.StringVar(value="zip")
-        ttk.Label(options_frame, text="Compression:").pack(side=tk.LEFT)
-        ttk.Radiobutton(options_frame, text="ZIP", variable=self.compression_var, value="zip").pack(side=tk.LEFT, padx=(5, 10))
-        ttk.Radiobutton(options_frame, text="TAR.GZ", variable=self.compression_var, value="tar.gz").pack(side=tk.LEFT, padx=(0, 10))
+        ttk.Label(options_frame, text="Compactação:", font=('Segoe UI', 11, 'bold')).pack(side=tk.LEFT)
+        ttk.Radiobutton(options_frame, text="ZIP", variable=self.compression_var, value="zip").pack(side=tk.LEFT, padx=(10, 15))
+        ttk.Radiobutton(options_frame, text="TAR.GZ", variable=self.compression_var, value="tar.gz").pack(side=tk.LEFT, padx=(0, 15))
         
         self.include_subdirs_var = tk.BooleanVar(value=True)
-        ttk.Checkbutton(options_frame, text="Include subdirectories", variable=self.include_subdirs_var).pack(side=tk.LEFT, padx=(10, 0))
+        ttk.Checkbutton(options_frame, text="Incluir subpastas", variable=self.include_subdirs_var).pack(side=tk.LEFT, padx=(15, 0))
         
         # Progress section
-        progress_frame = ttk.LabelFrame(self.backup_frame, text="Progress", padding=10)
-        progress_frame.pack(fill=tk.X, padx=5, pady=5)
+        progress_frame = ttk.LabelFrame(self.backup_frame, text="Progresso", padding=15)
+        progress_frame.pack(fill=tk.X, padx=10, pady=10)
         
         self.progress_var = tk.DoubleVar()
-        self.progress_bar = ttk.Progressbar(progress_frame, variable=self.progress_var, maximum=100)
-        self.progress_bar.pack(fill=tk.X, pady=(0, 5))
+        self.progress_bar = ttk.Progressbar(progress_frame, variable=self.progress_var, maximum=100, length=400)
+        self.progress_bar.pack(fill=tk.X, pady=(0, 8))
         
-        self.status_label = ttk.Label(progress_frame, text="Ready")
+        self.status_label = ttk.Label(progress_frame, text="Pronto", font=('Segoe UI', 10))
         self.status_label.pack(anchor=tk.W)
         
         # Control buttons
@@ -281,6 +311,10 @@ class BackupGUI:
         if not self.destination_path.get():
             messagebox.showerror("Error", "Please select a destination folder.")
             return
+            
+        if not self.backup_title_var.get().strip():
+            messagebox.showerror("Error", "Please enter a backup title for easy identification.")
+            return
         
         if not os.path.exists(self.destination_path.get()):
             messagebox.showerror("Error", "Destination folder does not exist.")
@@ -307,7 +341,8 @@ class BackupGUI:
                 self.destination_path.get(),
                 self.compression_var.get(),
                 self.include_subdirs_var.get(),
-                progress_callback
+                progress_callback,
+                self.backup_title_var.get().strip()
             )
             
             if backup_name and self.backup_in_progress:

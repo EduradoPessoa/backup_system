@@ -14,14 +14,16 @@ import shutil
 
 from catalog_manager import CatalogManager
 from utils import get_file_size, calculate_directory_size
+from open_files_handler import OpenFilesHandler, create_backup_report
 
 class BackupManager:
     def __init__(self):
         self.catalog_manager = CatalogManager()
         self.cancel_flag = threading.Event()
+        self.open_files_handler = OpenFilesHandler()
     
     def create_backup(self, source_folders, destination_path, compression_type="zip", 
-                     include_subdirs=True, progress_callback=None):
+                     include_subdirs=True, progress_callback=None, backup_title=""):
         """
         Create a compressed backup of the specified folders.
         
@@ -31,6 +33,7 @@ class BackupManager:
             compression_type: 'zip' or 'tar.gz'
             include_subdirs: Whether to include subdirectories
             progress_callback: Function to call with progress updates
+            backup_title: Custom title for the backup
         
         Returns:
             str: Backup filename if successful, None if failed
@@ -38,9 +41,14 @@ class BackupManager:
         try:
             self.cancel_flag.clear()
             
-            # Generate backup name with timestamp
+            # Generate backup name with timestamp and custom title
             timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-            backup_name = f"backup_{timestamp}"
+            if backup_title:
+                # Sanitize title and create name
+                safe_title = backup_title.replace(" ", "_").replace("-", "_")
+                backup_name = f"{safe_title}_{timestamp}"
+            else:
+                backup_name = f"backup_{timestamp}"
             
             if compression_type == "zip":
                 backup_filename = f"{backup_name}.zip"
