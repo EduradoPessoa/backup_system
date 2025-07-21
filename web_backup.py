@@ -216,123 +216,153 @@ def restore_files():
 
 @app.route('/api/folders')
 def list_folders():
-    """List available folders for selection."""
+    """List available local folders for backup selection."""
     try:
         folders = []
+        import shutil
         
-        # Detect Windows drives if on Windows
-        import platform
-        if platform.system() == 'Windows':
-            import string
-            # Get available drives on Windows
-            for letter in string.ascii_uppercase:
-                drive = f"{letter}:\\"
-                if os.path.exists(drive):
+        # Start with the current working directory and its contents
+        current_dir = os.getcwd()
+        try:
+            total, used, free = shutil.disk_usage(current_dir)
+            folders.append({
+                'name': f"📂 Diretório Atual: {os.path.basename(current_dir)}",
+                'path': current_dir,
+                'size': f"{format_size(free)} livres",
+                'type': 'current'
+            })
+        except:
+            folders.append({
+                'name': f"📂 Diretório Atual: {os.path.basename(current_dir)}",
+                'path': current_dir,
+                'size': 'N/A',
+                'type': 'current'
+            })
+        
+        # List all folders in current directory
+        try:
+            for item in os.listdir(current_dir):
+                item_path = os.path.join(current_dir, item)
+                if os.path.isdir(item_path) and not item.startswith('.'):
                     try:
-                        # Get drive label and free space
-                        import shutil
-                        total, used, free = shutil.disk_usage(drive)
-                        drive_info = f"{drive} ({format_size(free)} livres de {format_size(total)})"
+                        # Calculate folder size (with limit to avoid timeout)
+                        total_size = 0
+                        file_count = 0
+                        for root, dirs, files in os.walk(item_path):
+                            file_count += len(files)
+                            if file_count > 500:  # Limit to avoid long waits
+                                break
+                            for file in files[:50]:  # Limit files per directory
+                                try:
+                                    total_size += os.path.getsize(os.path.join(root, file))
+                                except:
+                                    continue
+                        
                         folders.append({
-                            'name': f"Drive {letter}: - {drive_info}",
-                            'path': drive,
-                            'size': format_size(total),
-                            'type': 'drive'
+                            'name': f"📁 {item}",
+                            'path': item_path,
+                            'size': f"{format_size(total_size)} ({file_count}+ arquivos)",
+                            'type': 'local_folder'
                         })
                     except:
                         folders.append({
-                            'name': f"Drive {letter}:",
-                            'path': drive,
+                            'name': f"📁 {item}",
+                            'path': item_path,
                             'size': 'N/A',
-                            'type': 'drive'
+                            'type': 'local_folder'
                         })
-        else:
-            # For Unix-like systems, show root and common mount points
+        except Exception as e:
             folders.append({
-                'name': 'Raiz do Sistema (/)',
-                'path': '/',
-                'size': format_size(0),
-                'type': 'drive'
+                'name': f"Erro ao listar pasta atual: {str(e)}",
+                'path': current_dir,
+                'size': 'N/A',
+                'type': 'error'
             })
-            
-            # Check common mount points
-            mount_points = ['/home', '/media', '/mnt', '/Volumes']
-            for mount in mount_points:
-                if os.path.exists(mount):
-                    folders.append({
-                        'name': f"Ponto de Montagem ({mount})",
-                        'path': mount,
-                        'size': format_size(0),
-                        'type': 'mount'
-                    })
         
-        # Add user's home directory and common folders
+        # Add user's home directory
         home_dir = str(Path.home())
-        folders.append({
-            'name': f"Pasta Pessoal ({os.path.basename(home_dir)})",
-            'path': home_dir,
-            'size': format_size(0),
-            'type': 'home'
-        })
+        if home_dir != current_dir:
+            try:
+                total, used, free = shutil.disk_usage(home_dir)
+                folders.append({
+                    'name': f"🏠 Pasta Pessoal: {os.path.basename(home_dir)}",
+                    'path': home_dir,
+                    'size': f"{format_size(free)} livres",
+                    'type': 'home'
+                })
+            except:
+                folders.append({
+                    'name': f"🏠 Pasta Pessoal: {os.path.basename(home_dir)}",
+                    'path': home_dir,
+                    'size': 'N/A',
+                    'type': 'home'
+                })
         
-        # Add common user folders
-        common_folders = ['Desktop', 'Documents', 'Downloads', 'Pictures', 'Music', 'Videos']
-        for folder in common_folders:
-            folder_path = os.path.join(home_dir, folder)
+        # Add common user folders if they exist
+        common_folders = [
+            ('Desktop', '🖥️'), ('Documents', '📄'), ('Downloads', '⬇️'), 
+            ('Pictures', '🖼️'), ('Music', '🎵'), ('Videos', '🎬')
+        ]
+        
+        for folder_name, icon in common_folders:
+            folder_path = os.path.join(home_dir, folder_name)
             if os.path.exists(folder_path) and os.path.isdir(folder_path):
                 try:
-                    folder_size = sum(os.path.getsize(os.path.join(dirpath, filename))
-                                    for dirpath, dirnames, filenames in os.walk(folder_path)
-                                    for filename in filenames)
+                    # Quick size calculation
+                    folder_files = list(os.listdir(folder_path))[:100]  # Limit for speed
+                    folder_size = sum(
+                        os.path.getsize(os.path.join(folder_path, f)) 
+                        for f in folder_files 
+                        if os.path.isfile(os.path.join(folder_path, f))
+                    )
+                    
                     folders.append({
-                        'name': folder,
+                        'name': f"{icon} {folder_name}",
                         'path': folder_path,
-                        'size': format_size(folder_size),
+                        'size': f"{format_size(folder_size)} (aprox.)",
                         'type': 'user_folder'
                     })
                 except:
                     folders.append({
-                        'name': folder,
+                        'name': f"{icon} {folder_name}",
                         'path': folder_path,
                         'size': 'N/A',
                         'type': 'user_folder'
                     })
         
-        # Add current directory contents (if different from home)
-        current_dir = os.getcwd()
-        if current_dir != home_dir:
-            folders.append({
-                'name': f"Diretório Atual ({os.path.basename(current_dir)})",
-                'path': current_dir,
-                'size': format_size(0),
-                'type': 'current'
-            })
-            
-            for item in os.listdir(current_dir):
-                item_path = os.path.join(current_dir, item)
-                if os.path.isdir(item_path) and not item.startswith('.'):
-                    try:
-                        item_size = sum(os.path.getsize(os.path.join(dirpath, filename))
-                                      for dirpath, dirnames, filenames in os.walk(item_path)
-                                      for filename in filenames)
-                        folders.append({
-                            'name': f"📁 {item}",
-                            'path': item_path,
-                            'size': format_size(item_size),
-                            'type': 'current_folder'
-                        })
-                    except:
-                        folders.append({
-                            'name': f"📁 {item}",
-                            'path': item_path,
-                            'size': 'N/A',
-                            'type': 'current_folder'
-                        })
+        # Add common system paths if accessible
+        system_paths = [
+            ('/tmp', '🗂️ Arquivos Temporários'),
+            ('/var/log', '📋 Logs do Sistema'),
+            ('/etc', '⚙️ Configurações')
+        ]
+        
+        for path, display_name in system_paths:
+            if os.path.exists(path) and os.access(path, os.R_OK):
+                try:
+                    path_size = sum(
+                        os.path.getsize(os.path.join(root, file))
+                        for root, dirs, files in os.walk(path)
+                        for file in files[:10]  # Limit for speed
+                    )
+                    folders.append({
+                        'name': display_name,
+                        'path': path,
+                        'size': f"{format_size(path_size)} (aprox.)",
+                        'type': 'system'
+                    })
+                except:
+                    folders.append({
+                        'name': display_name,
+                        'path': path,
+                        'size': 'N/A',
+                        'type': 'system'
+                    })
         
         return jsonify(folders)
         
     except Exception as e:
-        return jsonify({'error': str(e)}), 500
+        return jsonify({'error': f'Erro ao listar pastas: {str(e)}'}), 500
 
 @app.route('/api/browse/<path:folder_path>')
 def browse_folder(folder_path):
