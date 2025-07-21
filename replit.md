@@ -116,6 +116,7 @@ The modular structure allows for easy maintenance and feature additions while ke
 - **Privacidade**: Dados armazenados localmente no computador do usuário
 - **Executáveis**: Scripts prontos para gerar .exe, .app e Linux binaries
 - **Branding**: PHOENYX TECNOLOGIA 2025 integrado em todas as interfaces
+- **Backup Incremental**: Apenas arquivos novos/modificados desde último backup
 
 ### 🚀 Acesso ao Sistema
 - **Aplicativo Principal**: Execute `python main.py`
@@ -195,3 +196,17 @@ The modular structure allows for easy maintenance and feature additions while ke
   - User statistics tracking: backups count, total size, activity dates
   - Admin features: user list, statistics, search functionality
   - Responsive web interface with PHOENYX TECNOLOGIA branding
+
+### Incremental Backup System
+- **Date**: 2025-01-21
+- **Files**: `backup_manager.py`, `gui_components.py`, `backup_cli.py`
+- **Features Added**:
+  - Incremental backup mode comparing file modification dates
+  - Smart file filtering based on last backup timestamp
+  - GUI checkbox for incremental backup option with tooltip
+  - CLI parameter `--incremental` or `-i` for command line usage
+  - Backup name prefixing with "incremental_" for identification
+  - Catalog integration marking incremental backups
+  - Significant time and space savings for frequent backups
+  - Detailed progress reporting showing reference backup date
+  - Handles edge cases when no new files are found

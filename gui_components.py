@@ -213,6 +213,25 @@ class BackupGUI:
         self.include_subdirs_var = tk.BooleanVar(value=True)
         ttk.Checkbutton(options_frame, text="Incluir subpastas", variable=self.include_subdirs_var).pack(side=tk.LEFT, padx=(15, 0))
         
+        # Incremental backup option
+        self.incremental_var = tk.BooleanVar(value=False)
+        incremental_cb = ttk.Checkbutton(options_frame, text="Backup Incremental", variable=self.incremental_var)
+        incremental_cb.pack(side=tk.LEFT, padx=(15, 0))
+        
+        # Tooltip for incremental backup
+        def show_incremental_tooltip(event=None):
+            try:
+                import tkinter.messagebox as messagebox
+                messagebox.showinfo("Backup Incremental", 
+                    "Inclui apenas arquivos novos ou modificados desde o último backup.\n\n" +
+                    "• Economiza tempo e espaço\n" +
+                    "• Ideal para backups frequentes\n" +
+                    "• Compara datas de modificação dos arquivos")
+            except:
+                pass
+        
+        incremental_cb.bind("<Button-3>", show_incremental_tooltip)  # Right-click for info
+        
         # Progress section
         progress_frame = ttk.LabelFrame(self.backup_frame, text="Progresso", padding=15)
         progress_frame.pack(fill=tk.X, padx=10, pady=10)
@@ -449,7 +468,8 @@ class BackupGUI:
                 self.compression_var.get(),
                 self.include_subdirs_var.get(),
                 progress_callback,
-                self.backup_title_var.get().strip()
+                self.backup_title_var.get().strip(),
+                self.incremental_var.get()
             )
             
             # Ensure calculation modal is closed

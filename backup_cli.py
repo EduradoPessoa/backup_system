@@ -58,6 +58,7 @@ class BackupCLI:
             print(f"Destino: {args.destination}")
             print(f"Compactação: {args.compression}")
             print(f"Incluir subpastas: {'Sim' if args.include_subdirs else 'Não'}")
+            print(f"Backup incremental: {'Sim' if getattr(args, 'incremental', False) else 'Não'}")
             print("-" * 60)
             
             # Executar backup
@@ -67,7 +68,8 @@ class BackupCLI:
                 args.compression,
                 args.include_subdirs,
                 progress_callback if args.verbose else None,
-                args.title
+                args.title,
+                args.incremental
             )
             
             if backup_name:
@@ -241,6 +243,7 @@ Para agendamento no Windows:
     backup_parser.add_argument('--destination', required=True, help='Pasta de destino')
     backup_parser.add_argument('--compression', choices=['zip', 'tar.gz'], default='zip', help='Tipo de compactação (padrão: zip)')
     backup_parser.add_argument('--no-subdirs', action='store_true', help='Não incluir subpastas')
+    backup_parser.add_argument('--incremental', '-i', action='store_true', help='Backup incremental (apenas arquivos novos ou modificados)')
     backup_parser.add_argument('--verbose', '-v', action='store_true', help='Mostrar progresso detalhado')
     
     # Comando list

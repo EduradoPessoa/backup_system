@@ -24,7 +24,7 @@ class BackupManager:
         self.open_files_handler = OpenFilesHandler()
     
     def create_backup(self, source_folders, destination_path, compression_type="zip", 
-                     include_subdirs=True, progress_callback=None, backup_title=""):
+                     include_subdirs=True, progress_callback=None, backup_title="", incremental=False):
         """
         Create a compressed backup of the specified folders.
         
@@ -35,6 +35,7 @@ class BackupManager:
             include_subdirs: Whether to include subdirectories
             progress_callback: Function to call with progress updates
             backup_title: Custom title for the backup
+            incremental: Only backup files newer than last backup
         
         Returns:
             str: Backup filename if successful, None if failed
@@ -45,12 +46,13 @@ class BackupManager:
             
             # Generate backup name with timestamp and custom title
             timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+            prefix = "incremental_" if incremental else ""
             if backup_title:
                 # Sanitize title and create name
                 safe_title = backup_title.replace(" ", "_").replace("-", "_")
-                backup_name = f"{safe_title}_{timestamp}"
+                backup_name = f"{prefix}{safe_title}_{timestamp}"
             else:
-                backup_name = f"backup_{timestamp}"
+                backup_name = f"{prefix}backup_{timestamp}"
             
             if compression_type == "zip":
                 backup_filename = f"{backup_name}.zip"
@@ -76,7 +78,14 @@ class BackupManager:
                     progress_callback((i / len(source_folders)) * 30, 100, 
                                     f"Analisando pasta: {os.path.basename(source_folder)}")
                 
-                folder_files = self._get_files_to_backup(source_folder, include_subdirs)
+                # Get last backup timestamp for incremental mode
+                last_backup_time = None
+                if incremental:
+                    last_backup_time = self._get_last_backup_time(source_folders)
+                    if progress_callback and last_backup_time:
+                        progress_callback(0, 100, f"Modo incremental: desde {last_backup_time.strftime('%d/%m/%Y %H:%M')}")
+                
+                folder_files = self._get_files_to_backup(source_folder, include_subdirs, last_backup_time)
                 file_list.extend(folder_files)
                 processed_folders += 1
             
@@ -109,7 +118,8 @@ class BackupManager:
             time.sleep(0.5)
             
             if not file_list:
-                raise Exception("No files found to backup")
+                message = "Nenhum arquivo novo encontrado para backup incremental" if incremental else "No files found to backup"
+                raise Exception(message)
             
             # Create backup
             if compression_type == "zip":
@@ -130,6 +140,7 @@ class BackupManager:
                     'compression': compression_type,
                     'source_folders': source_folders,
                     'file_count': len(file_list),
+                    'incremental': incremental,
                     'files': [{'name': f, 'size': get_file_size(f)} for f in file_list if os.path.exists(f)]
                 }
                 
@@ -158,7 +169,7 @@ class BackupManager:
                 pass
             raise Exception(f"Backup failed: {str(e)}")
     
-    def _get_files_to_backup(self, source_folder, include_subdirs):
+    def _get_files_to_backup(self, source_folder, include_subdirs, since_time=None):
         """Get list of files to backup from source folder."""
         files = []
         
@@ -171,12 +182,14 @@ class BackupManager:
                     for filename in filenames:
                         file_path = os.path.join(root, filename)
                         if os.path.isfile(file_path):
-                            files.append(file_path)
+                            if self._should_include_file(file_path, since_time):
+                                files.append(file_path)
             else:
                 for item in os.listdir(source_folder):
                     item_path = os.path.join(source_folder, item)
                     if os.path.isfile(item_path):
-                        files.append(item_path)
+                        if self._should_include_file(item_path, since_time):
+                            files.append(item_path)
         except (OSError, IOError) as e:
             raise Exception(f"Error accessing folder {source_folder}: {str(e)}")
         
@@ -273,6 +286,52 @@ class BackupManager:
     def cancel_backup(self):
         """Cancel the current backup operation."""
         self.cancel_flag.set()
+    
+    def _get_last_backup_time(self, source_folders):
+        """Obter timestamp do último backup para as pastas especificadas."""
+        try:
+            catalog = self.catalog_manager.get_catalog_entries()
+            if not catalog:
+                return None
+            
+            # Procurar pelo backup mais recente das mesmas pastas
+            last_backup_time = None
+            source_folders_set = set(str(Path(f).resolve()) for f in source_folders)
+            
+            for entry in catalog:
+                entry_folders = entry.get('source_folders', [])
+                entry_folders_set = set(str(Path(f).resolve()) for f in entry_folders)
+                
+                # Se as pastas são as mesmas ou subconjunto
+                if source_folders_set.intersection(entry_folders_set):
+                    backup_date = entry.get('date')
+                    if backup_date:
+                        try:
+                            backup_time = datetime.fromisoformat(backup_date)
+                            if not last_backup_time or backup_time > last_backup_time:
+                                last_backup_time = backup_time
+                        except:
+                            continue
+            
+            return last_backup_time
+        except Exception as e:
+            print(f"Erro ao obter última data de backup: {e}")
+            return None
+    
+    def _should_include_file(self, file_path, since_time):
+        """Verificar se arquivo deve ser incluído baseado na data de modificação."""
+        try:
+            # Se não há filtro de tempo, incluir sempre
+            if since_time is None:
+                return True
+            
+            # Verificar data de modificação do arquivo
+            file_mtime = datetime.fromtimestamp(os.path.getmtime(file_path))
+            return file_mtime > since_time
+            
+        except (OSError, IOError):
+            # Se não conseguir acessar o arquivo, incluir por segurança
+            return True
     
     def verify_backup(self, backup_path):
         """Verify the integrity of a backup file."""
