@@ -13,7 +13,7 @@ import threading
 import shutil
 
 from catalog_manager import CatalogManager
-from utils import get_file_size, calculate_directory_size
+from utils import get_file_size, calculate_directory_size, format_size
 from open_files_handler import OpenFilesHandler, create_backup_report
 
 class BackupManager:
@@ -38,6 +38,7 @@ class BackupManager:
         Returns:
             str: Backup filename if successful, None if failed
         """
+        backup_path = None
         try:
             self.cancel_flag.clear()
             
@@ -57,25 +58,54 @@ class BackupManager:
             
             backup_path = os.path.join(destination_path, backup_filename)
             
-            # Calculate total size for progress tracking
+            # Calculate total size for progress tracking with detailed progress
             if progress_callback:
-                progress_callback(0, 100, "Calculating backup size...")
+                progress_callback(0, 100, "Coletando lista de arquivos...")
             
             total_size = 0
             file_list = []
+            processed_folders = 0
             
-            for source_folder in source_folders:
+            # First pass: collect all files
+            for i, source_folder in enumerate(source_folders):
                 if self.cancel_flag.is_set():
                     return None
                 
+                if progress_callback:
+                    progress_callback((i / len(source_folders)) * 30, 100, 
+                                    f"Analisando pasta: {os.path.basename(source_folder)}")
+                
                 folder_files = self._get_files_to_backup(source_folder, include_subdirs)
                 file_list.extend(folder_files)
+                processed_folders += 1
+            
+            if progress_callback:
+                progress_callback(30, 100, f"Calculando tamanho de {len(file_list)} arquivos...")
+            
+            # Second pass: calculate sizes with progress
+            for i, file_path in enumerate(file_list):
+                if self.cancel_flag.is_set():
+                    return None
                 
-                for file_path in folder_files:
-                    try:
-                        total_size += get_file_size(file_path)
-                    except (OSError, IOError):
-                        continue
+                try:
+                    total_size += get_file_size(file_path)
+                    
+                    # Update progress every 100 files or at the end
+                    if i % 100 == 0 or i == len(file_list) - 1:
+                        if progress_callback:
+                            progress_pct = 30 + ((i + 1) / len(file_list)) * 50  # 30-80%
+                            progress_callback(progress_pct, 100, 
+                                            f"Calculando tamanho: {i+1}/{len(file_list)} arquivos")
+                            
+                except (OSError, IOError):
+                    continue
+            
+            if progress_callback:
+                progress_callback(80, 100, f"Tamanho total: {format_size(total_size)}")
+                
+            # Small delay to show final calculation result
+            import time
+            time.sleep(0.5)
             
             if not file_list:
                 raise Exception("No files found to backup")
@@ -117,7 +147,7 @@ class BackupManager:
         except Exception as e:
             # Cleanup on error
             try:
-                if 'backup_path' in locals() and backup_path and os.path.exists(backup_path):
+                if backup_path and os.path.exists(backup_path):
                     os.remove(backup_path)
             except:
                 pass

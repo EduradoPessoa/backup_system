@@ -15,6 +15,85 @@ from restore_manager import RestoreManager
 from catalog_manager import CatalogManager
 from utils import format_size, format_time
 
+class ProgressModal:
+    def __init__(self, parent, title="Progresso"):
+        self.parent = parent
+        self.cancelled = False
+        
+        # Create modal window
+        self.window = tk.Toplevel(parent)
+        self.window.title(title)
+        self.window.geometry("450x180")
+        self.window.resizable(False, False)
+        self.window.transient(parent)
+        self.window.grab_set()
+        
+        # Center the window
+        self.window.update_idletasks()
+        x = (self.window.winfo_screenwidth() // 2) - (450 // 2)
+        y = (self.window.winfo_screenheight() // 2) - (180 // 2)
+        self.window.geometry(f"450x180+{x}+{y}")
+        
+        # Configure style
+        self.window.configure(bg='#f0f0f0')
+        
+        # Create main frame
+        main_frame = ttk.Frame(self.window, padding=20)
+        main_frame.pack(fill=tk.BOTH, expand=True)
+        
+        # Title label
+        self.title_label = ttk.Label(main_frame, text="Calculando tamanho do backup...", 
+                                    font=('Segoe UI', 12, 'bold'))
+        self.title_label.pack(pady=(0, 15))
+        
+        # Progress bar
+        self.progress_var = tk.DoubleVar()
+        self.progress_bar = ttk.Progressbar(main_frame, variable=self.progress_var, 
+                                          maximum=100, length=400, mode='indeterminate')
+        self.progress_bar.pack(pady=(0, 10))
+        
+        # Status label
+        self.status_label = ttk.Label(main_frame, text="Analisando arquivos...", 
+                                     font=('Segoe UI', 10))
+        self.status_label.pack(pady=(0, 15))
+        
+        # Cancel button
+        self.cancel_button = ttk.Button(main_frame, text="Cancelar", 
+                                       command=self.cancel)
+        self.cancel_button.pack()
+        
+        # Start indeterminate progress
+        self.progress_bar.start(10)
+        
+        # Handle window close
+        self.window.protocol("WM_DELETE_WINDOW", self.cancel)
+    
+    def update_status(self, message, current=0, total=0):
+        """Update the progress status."""
+        if self.window.winfo_exists():
+            self.status_label.config(text=message)
+            
+            if total > 0:
+                # Switch to determinate mode
+                self.progress_bar.stop()
+                self.progress_bar.config(mode='determinate')
+                progress = (current / total) * 100
+                self.progress_var.set(progress)
+            
+            self.window.update()
+    
+    def cancel(self):
+        """Cancel the operation."""
+        self.cancelled = True
+        self.close()
+    
+    def close(self):
+        """Close the modal."""
+        if self.window.winfo_exists():
+            self.progress_bar.stop()
+            self.window.grab_release()
+            self.window.destroy()
+
 class BackupGUI:
     def __init__(self, root):
         self.root = root
@@ -140,10 +219,10 @@ class BackupGUI:
         control_frame = ttk.Frame(self.backup_frame)
         control_frame.pack(fill=tk.X, padx=5, pady=5)
         
-        self.backup_button = ttk.Button(control_frame, text="Start Backup", command=self.start_backup)
-        self.backup_button.pack(side=tk.LEFT, padx=(0, 5))
+        self.backup_button = ttk.Button(control_frame, text="Iniciar Backup", command=self.start_backup)
+        self.backup_button.pack(side=tk.LEFT, padx=(0, 10))
         
-        self.cancel_button = ttk.Button(control_frame, text="Cancel", command=self.cancel_backup, state=tk.DISABLED)
+        self.cancel_button = ttk.Button(control_frame, text="Cancelar", command=self.cancel_backup, state=tk.DISABLED)
         self.cancel_button.pack(side=tk.LEFT)
     
     def create_restore_tab(self):
@@ -305,20 +384,23 @@ class BackupGUI:
     def start_backup(self):
         """Start the backup process."""
         if not self.source_folders:
-            messagebox.showerror("Error", "Please select at least one source folder.")
+            messagebox.showerror("Erro", "Por favor, selecione pelo menos uma pasta de origem.")
             return
         
         if not self.destination_path.get():
-            messagebox.showerror("Error", "Please select a destination folder.")
+            messagebox.showerror("Erro", "Por favor, selecione uma pasta de destino.")
             return
             
         if not self.backup_title_var.get().strip():
-            messagebox.showerror("Error", "Please enter a backup title for easy identification.")
+            messagebox.showerror("Erro", "Por favor, insira um título para o backup.")
             return
         
         if not os.path.exists(self.destination_path.get()):
-            messagebox.showerror("Error", "Destination folder does not exist.")
+            messagebox.showerror("Erro", "A pasta de destino não existe.")
             return
+        
+        # Create progress modal for calculation phase
+        self.calculation_modal = ProgressModal(self.root, "Calculando Backup")
         
         # Disable backup button and enable cancel
         self.backup_button.config(state=tk.DISABLED)
@@ -334,6 +416,22 @@ class BackupGUI:
         try:
             def progress_callback(current, total, message):
                 progress = (current / total) * 100 if total > 0 else 0
+                
+                # Update calculation modal during size calculation phase (0-80%)
+                if hasattr(self, 'calculation_modal') and progress <= 80:
+                    self.root.after(0, lambda: self.calculation_modal.update_status(message, current, total))
+                    
+                    # Check if user cancelled during calculation
+                    if self.calculation_modal.cancelled:
+                        self.backup_manager.cancel_backup()
+                        return
+                
+                # Close calculation modal and switch to main progress at 80%
+                elif hasattr(self, 'calculation_modal') and progress > 80:
+                    self.root.after(0, lambda: self.calculation_modal.close())
+                    delattr(self, 'calculation_modal')
+                
+                # Update main progress bar
                 self.root.after(0, lambda: self.update_progress(progress, message))
             
             backup_name = self.backup_manager.create_backup(
@@ -345,12 +443,22 @@ class BackupGUI:
                 self.backup_title_var.get().strip()
             )
             
+            # Ensure calculation modal is closed
+            if hasattr(self, 'calculation_modal'):
+                self.root.after(0, lambda: self.calculation_modal.close())
+                delattr(self, 'calculation_modal')
+            
             if backup_name and self.backup_in_progress:
                 self.root.after(0, lambda: self.backup_completed(backup_name))
             elif self.backup_in_progress:
                 self.root.after(0, lambda: self.backup_failed("Backup failed"))
                 
         except Exception as e:
+            # Ensure calculation modal is closed on error
+            if hasattr(self, 'calculation_modal'):
+                self.root.after(0, lambda: self.calculation_modal.close())
+                delattr(self, 'calculation_modal')
+                
             if self.backup_in_progress:
                 self.root.after(0, lambda: self.backup_failed(str(e)))
     
@@ -387,13 +495,19 @@ class BackupGUI:
     
     def cancel_backup(self):
         """Cancel the backup process."""
-        if messagebox.askyesno("Confirm", "Are you sure you want to cancel the backup?"):
+        if messagebox.askyesno("Confirmar", "Tem certeza que deseja cancelar o backup?"):
             self.backup_in_progress = False
             self.backup_manager.cancel_backup()
+            
+            # Close calculation modal if open
+            if hasattr(self, 'calculation_modal'):
+                self.calculation_modal.close()
+                delattr(self, 'calculation_modal')
+            
             self.backup_button.config(state=tk.NORMAL)
             self.cancel_button.config(state=tk.DISABLED)
-            self.status_label.config(text="Backup cancelled")
-            self.log_message("Backup cancelled by user")
+            self.status_label.config(text="Backup cancelado")
+            self.log_message("Backup cancelado pelo usuário")
     
     def refresh_backup_list(self):
         """Refresh the list of available backups."""
