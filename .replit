@@ -24,6 +24,10 @@ args = "desktop_backup_app"
 task = "workflow.run"
 args = "Web Backup App"
 
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "Admin Dashboard"
+
 [[workflows.workflow]]
 name = "Desktop Backup App"
 author = "agent"
@@ -49,6 +53,19 @@ task = "shell.exec"
 args = "python web_backup.py"
 waitForPort = 5000
 
+[[workflows.workflow]]
+name = "Admin Dashboard"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "python admin_dashboard.py"
+waitForPort = 5001
+
 [[ports]]
 localPort = 5000
 externalPort = 80
+
+[[ports]]
+localPort = 5001
+externalPort = 3000

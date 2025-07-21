@@ -158,3 +158,17 @@ The modular structure allows for easy maintenance and feature additions while ke
   - Company branding header in desktop application
   - Branded web interface with professional styling
   - Consistent branding across all application interfaces
+
+### User Management System
+- **Date**: 2025-01-21
+- **Files**: `user_manager.py`, `login_gui.py`, `admin_dashboard.py`
+- **Features Added**:
+  - User registration and login system with name and email
+  - Local SQLite database for user data and statistics
+  - Automatic tracking of backup usage and statistics
+  - Web-based administrative dashboard on port 5001
+  - Real-time monitoring of user activity and engagement
+  - Privacy-focused design with local data storage
+  - Optional server synchronization for aggregate statistics
+  - Professional admin interface with user management
+  - Authentication flow integrated into main application

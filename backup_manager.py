@@ -15,6 +15,7 @@ import shutil
 from catalog_manager import CatalogManager
 from utils import get_file_size, calculate_directory_size, format_size
 from open_files_handler import OpenFilesHandler, create_backup_report
+from user_manager import user_manager
 
 class BackupManager:
     def __init__(self):
@@ -133,6 +134,10 @@ class BackupManager:
                 }
                 
                 self.catalog_manager.add_catalog_entry(catalog_entry)
+                
+                # Update user statistics
+                backup_size = get_file_size(backup_path)
+                user_manager.update_backup_stats(backup_size)
                 
                 if progress_callback:
                     progress_callback(100, 100, f"Backup completed: {backup_filename}")

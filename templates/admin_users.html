@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Usuários - Desktop Backup Manager Admin</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f5f6fa;
+            line-height: 1.6;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px 0;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .header .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .nav {
+            display: flex;
+            gap: 20px;
+        }
+        
+        .nav a {
+            color: white;
+            text-decoration: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            transition: background 0.3s;
+        }
+        
+        .nav a:hover {
+            background: rgba(255,255,255,0.2);
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .section {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            overflow: hidden;
+        }
+        
+        .section-header {
+            background: #f8f9fa;
+            padding: 20px;
+            border-bottom: 1px solid #e9ecef;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .section-content {
+            padding: 0;
+        }
+        
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        .table th,
+        .table td {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid #e9ecef;
+        }
+        
+        .table th {
+            background: #f8f9fa;
+            color: #666;
+            font-weight: 600;
+            position: sticky;
+            top: 0;
+        }
+        
+        .table tr:hover {
+            background: #f8f9fa;
+        }
+        
+        .badge {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+        
+        .badge-success {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .badge-warning {
+            background: #fff3cd;
+            color: #856404;
+        }
+        
+        .badge-danger {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        
+        .search-box {
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            width: 300px;
+            font-size: 14px;
+        }
+        
+        .stats-summary {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .stat-box {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            text-align: center;
+        }
+        
+        .stat-number {
+            font-size: 24px;
+            font-weight: bold;
+            color: #667eea;
+        }
+        
+        .stat-label {
+            color: #666;
+            font-size: 14px;
+        }
+        
+        .user-email {
+            color: #666;
+            font-size: 14px;
+        }
+        
+        .size-info {
+            color: #666;
+            font-size: 13px;
+        }
+        
+        .date-info {
+            color: #666;
+            font-size: 13px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="container">
+            <div>
+                <h1>Gerenciamento de Usuários</h1>
+                <div style="font-size: 14px; opacity: 0.9;">PHOENYX TECNOLOGIA © 2025</div>
+            </div>
+            <nav class="nav">
+                <a href="/admin">Dashboard</a>
+                <a href="/admin/users">Usuários</a>
+                <a href="/admin/logout">Sair</a>
+            </nav>
+        </div>
+    </div>
+    
+    <div class="container">
+        <!-- Resumo Estatísticas -->
+        <div class="stats-summary">
+            <div class="stat-box">
+                <div class="stat-number">{{ users|length }}</div>
+                <div class="stat-label">Total de Usuários</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-number">{{ users|selectattr("7")|list|length }}</div>
+                <div class="stat-label">Usuários Ativos</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-number">{{ users|sum(attribute="5") }}</div>
+                <div class="stat-label">Total de Backups</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-number">{{ "%.1f"|format((users|sum(attribute="6") / (1024**3))) }}</div>
+                <div class="stat-label">GB Armazenados</div>
+            </div>
+        </div>
+        
+        <!-- Lista de Usuários -->
+        <div class="section">
+            <div class="section-header">
+                <h3>Lista Completa de Usuários</h3>
+                <input type="text" class="search-box" placeholder="Buscar por nome ou email..." id="searchInput">
+            </div>
+            <div class="section-content">
+                <table class="table" id="usersTable">
+                    <thead>
+                        <tr>
+                            <th>Nome</th>
+                            <th>Email</th>
+                            <th>Registro</th>
+                            <th>Último Acesso</th>
+                            <th>Backups</th>
+                            <th>Tamanho Total</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for user in users %}
+                        <tr>
+                            <td>
+                                <strong>{{ user[1] }}</strong>
+                                <div class="user-email">{{ user[2] }}</div>
+                            </td>
+                            <td>{{ user[2] }}</td>
+                            <td>
+                                {% if user[3] %}
+                                    {{ user[3][:10] }}
+                                    <div class="date-info">{{ user[3][11:16] if user[3]|length > 10 else '' }}</div>
+                                {% else %}
+                                    <span class="badge badge-warning">N/A</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if user[4] %}
+                                    {{ user[4][:10] }}
+                                    <div class="date-info">{{ user[4][11:16] if user[4]|length > 10 else '' }}</div>
+                                {% else %}
+                                    <span class="badge badge-warning">Nunca</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <strong>{{ user[5] }}</strong>
+                                {% if user[5] > 20 %}
+                                    <span class="badge badge-success">Super</span>
+                                {% elif user[5] > 5 %}
+                                    <span class="badge badge-warning">Ativo</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <strong>{{ "%.1f"|format((user[6] / (1024**3))) }} GB</strong>
+                                <div class="size-info">{{ "%.0f"|format((user[6] / (1024**2))) }} MB</div>
+                                {% if user[5] > 0 %}
+                                    <div class="size-info">Média: {{ "%.1f"|format((user[6] / user[5] / (1024**2))) }} MB/backup</div>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if user[7] %}
+                                    <span class="badge badge-success">Ativo</span>
+                                {% else %}
+                                    <span class="badge badge-danger">Inativo</span>
+                                {% endif %}
+                                
+                                {% if user[4] %}
+                                    {% set days_since_login = ((''|now - user[4]|strptime('%Y-%m-%d %H:%M:%S')).days) if user[4] else 999 %}
+                                    {% if days_since_login > 30 %}
+                                        <div><span class="badge badge-warning">Ausente 30+ dias</span></div>
+                                    {% elif days_since_login > 7 %}
+                                        <div><span class="badge badge-warning">Ausente {{ days_since_login }} dias</span></div>
+                                    {% endif %}
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Funcionalidade de busca
+        document.getElementById('searchInput').addEventListener('input', function() {
+            const searchTerm = this.value.toLowerCase();
+            const table = document.getElementById('usersTable');
+            const rows = table.getElementsByTagName('tr');
+            
+            for (let i = 1; i < rows.length; i++) {
+                const row = rows[i];
+                const name = row.cells[0].textContent.toLowerCase();
+                const email = row.cells[1].textContent.toLowerCase();
+                
+                if (name.includes(searchTerm) || email.includes(searchTerm)) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            }
+        });
+        
+        // Ordenação por colunas
+        function sortTable(columnIndex) {
+            const table = document.getElementById('usersTable');
+            const tbody = table.getElementsByTagName('tbody')[0];
+            const rows = Array.from(tbody.getElementsByTagName('tr'));
+            
+            rows.sort((a, b) => {
+                const aVal = a.cells[columnIndex].textContent.trim();
+                const bVal = b.cells[columnIndex].textContent.trim();
+                
+                // Tratamento especial para números
+                if (columnIndex === 4 || columnIndex === 5) {
+                    return parseInt(bVal) - parseInt(aVal);
+                }
+                
+                return aVal.localeCompare(bVal);
+            });
+            
+            rows.forEach(row => tbody.appendChild(row));
+        }
+        
+        // Adicionar clique nos cabeçalhos para ordenação
+        document.querySelectorAll('.table th').forEach((header, index) => {
+            header.style.cursor = 'pointer';
+            header.addEventListener('click', () => sortTable(index));
+        });
+    </script>
+</body>
+</html>
