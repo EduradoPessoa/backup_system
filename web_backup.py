@@ -218,33 +218,177 @@ def restore_files():
 def list_folders():
     """List available folders for selection."""
     try:
-        # Start from user's home directory
-        home_dir = str(Path.home())
         folders = []
         
-        # Add common folders
+        # Detect Windows drives if on Windows
+        import platform
+        if platform.system() == 'Windows':
+            import string
+            # Get available drives on Windows
+            for letter in string.ascii_uppercase:
+                drive = f"{letter}:\\"
+                if os.path.exists(drive):
+                    try:
+                        # Get drive label and free space
+                        import shutil
+                        total, used, free = shutil.disk_usage(drive)
+                        drive_info = f"{drive} ({format_size(free)} livres de {format_size(total)})"
+                        folders.append({
+                            'name': f"Drive {letter}: - {drive_info}",
+                            'path': drive,
+                            'size': format_size(total),
+                            'type': 'drive'
+                        })
+                    except:
+                        folders.append({
+                            'name': f"Drive {letter}:",
+                            'path': drive,
+                            'size': 'N/A',
+                            'type': 'drive'
+                        })
+        else:
+            # For Unix-like systems, show root and common mount points
+            folders.append({
+                'name': 'Raiz do Sistema (/)',
+                'path': '/',
+                'size': format_size(0),
+                'type': 'drive'
+            })
+            
+            # Check common mount points
+            mount_points = ['/home', '/media', '/mnt', '/Volumes']
+            for mount in mount_points:
+                if os.path.exists(mount):
+                    folders.append({
+                        'name': f"Ponto de Montagem ({mount})",
+                        'path': mount,
+                        'size': format_size(0),
+                        'type': 'mount'
+                    })
+        
+        # Add user's home directory and common folders
+        home_dir = str(Path.home())
+        folders.append({
+            'name': f"Pasta Pessoal ({os.path.basename(home_dir)})",
+            'path': home_dir,
+            'size': format_size(0),
+            'type': 'home'
+        })
+        
+        # Add common user folders
         common_folders = ['Desktop', 'Documents', 'Downloads', 'Pictures', 'Music', 'Videos']
         for folder in common_folders:
             folder_path = os.path.join(home_dir, folder)
             if os.path.exists(folder_path) and os.path.isdir(folder_path):
-                folders.append({
-                    'name': folder,
-                    'path': folder_path,
-                    'size': format_size(os.path.getsize(folder_path)) if os.path.exists(folder_path) else '0 B'
-                })
+                try:
+                    folder_size = sum(os.path.getsize(os.path.join(dirpath, filename))
+                                    for dirpath, dirnames, filenames in os.walk(folder_path)
+                                    for filename in filenames)
+                    folders.append({
+                        'name': folder,
+                        'path': folder_path,
+                        'size': format_size(folder_size),
+                        'type': 'user_folder'
+                    })
+                except:
+                    folders.append({
+                        'name': folder,
+                        'path': folder_path,
+                        'size': 'N/A',
+                        'type': 'user_folder'
+                    })
         
-        # Add current directory contents
+        # Add current directory contents (if different from home)
         current_dir = os.getcwd()
-        for item in os.listdir(current_dir):
-            item_path = os.path.join(current_dir, item)
-            if os.path.isdir(item_path) and not item.startswith('.'):
-                folders.append({
-                    'name': f"(Current) {item}",
-                    'path': item_path,
-                    'size': format_size(os.path.getsize(item_path)) if os.path.exists(item_path) else '0 B'
-                })
+        if current_dir != home_dir:
+            folders.append({
+                'name': f"Diretório Atual ({os.path.basename(current_dir)})",
+                'path': current_dir,
+                'size': format_size(0),
+                'type': 'current'
+            })
+            
+            for item in os.listdir(current_dir):
+                item_path = os.path.join(current_dir, item)
+                if os.path.isdir(item_path) and not item.startswith('.'):
+                    try:
+                        item_size = sum(os.path.getsize(os.path.join(dirpath, filename))
+                                      for dirpath, dirnames, filenames in os.walk(item_path)
+                                      for filename in filenames)
+                        folders.append({
+                            'name': f"📁 {item}",
+                            'path': item_path,
+                            'size': format_size(item_size),
+                            'type': 'current_folder'
+                        })
+                    except:
+                        folders.append({
+                            'name': f"📁 {item}",
+                            'path': item_path,
+                            'size': 'N/A',
+                            'type': 'current_folder'
+                        })
         
         return jsonify(folders)
+        
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/browse/<path:folder_path>')
+def browse_folder(folder_path):
+    """Browse contents of a specific folder."""
+    try:
+        # Decode the path
+        import urllib.parse
+        folder_path = urllib.parse.unquote(folder_path)
+        
+        if not os.path.exists(folder_path) or not os.path.isdir(folder_path):
+            return jsonify({'error': 'Pasta não encontrada'}), 404
+        
+        contents = []
+        try:
+            for item in os.listdir(folder_path):
+                item_path = os.path.join(folder_path, item)
+                if os.path.isdir(item_path):
+                    try:
+                        # Calculate folder size (limited to avoid long waits)
+                        item_size = 0
+                        file_count = 0
+                        for root, dirs, files in os.walk(item_path):
+                            file_count += len(files)
+                            if file_count > 1000:  # Limit to avoid timeout
+                                break
+                            for file in files[:100]:  # Limit files per directory
+                                try:
+                                    item_size += os.path.getsize(os.path.join(root, file))
+                                except:
+                                    continue
+                        
+                        contents.append({
+                            'name': f"📁 {item}",
+                            'path': item_path,
+                            'size': format_size(item_size),
+                            'type': 'folder',
+                            'file_count': file_count
+                        })
+                    except:
+                        contents.append({
+                            'name': f"📁 {item}",
+                            'path': item_path,
+                            'size': 'N/A',
+                            'type': 'folder',
+                            'file_count': 0
+                        })
+        except PermissionError:
+            return jsonify({'error': 'Acesso negado a esta pasta'}), 403
+        except Exception as e:
+            return jsonify({'error': f'Erro ao acessar pasta: {str(e)}'}), 500
+        
+        return jsonify({
+            'path': folder_path,
+            'parent': os.path.dirname(folder_path) if folder_path != os.path.dirname(folder_path) else None,
+            'contents': contents
+        })
         
     except Exception as e:
         return jsonify({'error': str(e)}), 500
@@ -288,10 +432,13 @@ if __name__ == '__main__':
         button:disabled { background-color: #ccc; cursor: not-allowed; }
         .progress-bar { width: 100%; height: 20px; background-color: #f0f0f0; border-radius: 10px; overflow: hidden; }
         .progress-fill { height: 100%; background-color: #007bff; transition: width 0.3s; }
-        .folder-list, .backup-list { max-height: 200px; overflow-y: auto; border: 1px solid #ddd; padding: 10px; }
-        .folder-item, .backup-item { padding: 5px; cursor: pointer; }
+        .folder-list, .backup-list { max-height: 300px; overflow-y: auto; border: 1px solid #ddd; padding: 10px; }
+        .folder-item, .backup-item { padding: 8px; cursor: pointer; border-bottom: 1px solid #eee; }
         .folder-item:hover, .backup-item:hover { background-color: #f0f0f0; }
         .folder-item.selected, .backup-item.selected { background-color: #007bff; color: white; }
+        .drive-item { background-color: #e8f4fd; border-left: 4px solid #007bff; font-weight: bold; }
+        .folder-breadcrumb { margin-bottom: 10px; padding: 5px; background-color: #f8f9fa; border: 1px solid #ddd; }
+        .browse-button { margin-left: 10px; padding: 2px 8px; font-size: 12px; }
         .error { color: red; }
         .success { color: green; }
         .log { background-color: #f8f9fa; padding: 10px; height: 200px; overflow-y: auto; font-family: monospace; }
@@ -313,8 +460,10 @@ if __name__ == '__main__':
             <div class="section">
                 <h3>Pastas de Origem</h3>
                 <div class="form-group">
-                    <button onclick="loadFolders()">Carregar Pastas Disponíveis</button>
+                    <button onclick="loadFolders()">Carregar Drives e Pastas</button>
+                    <button onclick="goToParent()" id="parent-button" style="display:none;">⬆️ Pasta Anterior</button>
                 </div>
+                <div id="folder-breadcrumb" class="folder-breadcrumb" style="display:none;"></div>
                 <div id="folder-list" class="folder-list"></div>
                 <div class="form-group">
                     <label>Pastas Selecionadas:</label>
@@ -415,6 +564,8 @@ if __name__ == '__main__':
         let selectedFolders = [];
         let selectedBackup = null;
         let statusInterval = null;
+        let currentPath = null;
+        let browsing = false;
 
         function showTab(tabName) {
             document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
@@ -432,6 +583,11 @@ if __name__ == '__main__':
         }
 
         function loadFolders() {
+            browsing = false;
+            currentPath = null;
+            document.getElementById('parent-button').style.display = 'none';
+            document.getElementById('folder-breadcrumb').style.display = 'none';
+            
             fetch('/api/folders')
                 .then(response => response.json())
                 .then(folders => {
@@ -441,16 +597,100 @@ if __name__ == '__main__':
                     folders.forEach(folder => {
                         const div = document.createElement('div');
                         div.className = 'folder-item';
-                        div.innerHTML = `<strong>${folder.name}</strong><br><small>${folder.path} (${folder.size})</small>`;
-                        div.onclick = () => selectFolder(folder);
+                        
+                        // Special styling for drives
+                        if (folder.type === 'drive') {
+                            div.classList.add('drive-item');
+                            div.innerHTML = `
+                                <strong>💾 ${folder.name}</strong><br>
+                                <small>${folder.path} - Tamanho: ${folder.size}</small>
+                                <button class="browse-button" onclick="browseFolder('${folder.path}', event)">Navegar</button>
+                            `;
+                        } else {
+                            div.innerHTML = `
+                                <strong>${folder.name}</strong><br>
+                                <small>${folder.path} (${folder.size})</small>
+                                ${folder.type === 'folder' || folder.type === 'current_folder' ? 
+                                  `<button class="browse-button" onclick="browseFolder('${folder.path}', event)">Navegar</button>` : ''}
+                            `;
+                        }
+                        
+                        div.onclick = (e) => {
+                            if (!e.target.classList.contains('browse-button')) {
+                                selectFolder(folder);
+                            }
+                        };
                         folderList.appendChild(div);
                     });
                     
-                    log('Pastas carregadas');
+                    log('Drives e pastas carregados');
                 })
                 .catch(error => {
                     log(`Erro ao carregar pastas: ${error.message}`);
                 });
+        }
+
+        function browseFolder(path, event) {
+            if (event) event.stopPropagation();
+            
+            browsing = true;
+            currentPath = path;
+            
+            fetch(`/api/browse/${encodeURIComponent(path)}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.error) {
+                        log(`Erro: ${data.error}`);
+                        return;
+                    }
+                    
+                    const folderList = document.getElementById('folder-list');
+                    const breadcrumb = document.getElementById('folder-breadcrumb');
+                    
+                    // Update breadcrumb
+                    breadcrumb.innerHTML = `Navegando: <strong>${data.path}</strong>`;
+                    breadcrumb.style.display = 'block';
+                    document.getElementById('parent-button').style.display = data.parent ? 'inline-block' : 'none';
+                    
+                    // Clear and populate folder list
+                    folderList.innerHTML = '';
+                    
+                    if (data.contents.length === 0) {
+                        folderList.innerHTML = '<div class="folder-item">Nenhuma pasta encontrada neste local</div>';
+                    } else {
+                        data.contents.forEach(folder => {
+                            const div = document.createElement('div');
+                            div.className = 'folder-item';
+                            div.innerHTML = `
+                                <strong>${folder.name}</strong><br>
+                                <small>${folder.path} (${folder.size}${folder.file_count > 0 ? `, ${folder.file_count} arquivos` : ''})</small>
+                                <button class="browse-button" onclick="browseFolder('${folder.path}', event)">Navegar</button>
+                            `;
+                            div.onclick = (e) => {
+                                if (!e.target.classList.contains('browse-button')) {
+                                    selectFolder(folder);
+                                }
+                            };
+                            folderList.appendChild(div);
+                        });
+                    }
+                    
+                    log(`Navegando em: ${data.path}`);
+                })
+                .catch(error => {
+                    log(`Erro ao navegar: ${error.message}`);
+                });
+        }
+
+        function goToParent() {
+            if (currentPath) {
+                const parentPath = currentPath.split(/[\\\/]/).slice(0, -1).join('/');
+                if (parentPath) {
+                    browseFolder(parentPath);
+                } else {
+                    loadFolders();
+                }
+            }
         }
 
         function selectFolder(folder) {
