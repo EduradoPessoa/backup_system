@@ -1,6 +1,6 @@
 # Desktop Backup Manager
 
-Uma aplicação completa de backup em português com interface gráfica e web.
+Uma aplicação comple    ta de backup em português com interface gráfica e web.
 
 ## 🚀 Como Usar
 
